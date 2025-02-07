@@ -10,20 +10,24 @@ import (
     "gorm.io/gorm"
 )
 
-type AuthController struct {
+// SignupController struct
+type SignupController struct {
     DB *gorm.DB
 }
 
-func NewAuthController(db *gorm.DB) *AuthController {
-    return &AuthController{DB: db}
+// NewSignupController creates a new instance of SignupController
+func NewSignupController(db *gorm.DB) *SignupController {
+    return &SignupController{DB: db}
 }
 
-func (ac *AuthController) Signup(c *gin.Context) {
+// Signup handles user registration
+func (sc *SignupController) Signup(c *gin.Context) {
     // Parse request body
     var input struct {
         Username string `json:"username"`
         Email    string `json:"email"`
         Password string `json:"password"`
+        Name     string `json:"name"`
     }
 
     if err := c.ShouldBindJSON(&input); err != nil {
@@ -39,8 +43,14 @@ func (ac *AuthController) Signup(c *gin.Context) {
 
     // Cek apakah email sudah terdaftar
     var existingUser models.User
-    if err := ac.DB.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
+    if err := sc.DB.Where("email = ?", input.Email).First(&existingUser).Error; err == nil {
         c.JSON(http.StatusConflict, gin.H{"error": "Email already exists"})
+        return
+    }
+
+    // Cek apakah username sudah terdaftar
+    if err := sc.DB.Where("username = ?", input.Username).First(&existingUser).Error; err == nil {
+        c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
         return
     }
 
@@ -56,13 +66,14 @@ func (ac *AuthController) Signup(c *gin.Context) {
         Username: input.Username,
         Email:    input.Email,
         Password: string(hashedPassword),
+        Name:     input.Name,
     }
 
-    if err := ac.DB.Create(&newUser).Error; err != nil {
+    if err := sc.DB.Create(&newUser).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
         return
     }
 
-    // Kirim respons
+    // Kirim respons sukses
     c.JSON(http.StatusCreated, gin.H{"message": "Sign Up successful!"})
 }

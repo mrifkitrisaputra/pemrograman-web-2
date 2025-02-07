@@ -9,7 +9,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // State untuk menampilkan error
   const [showPassword, setShowPassword] = useState(false); // State untuk menampilkan/sembunyikan password
 
   const navigate = useNavigate(); // Inisialisasi useNavigate
@@ -52,8 +52,13 @@ const Signup = () => {
       navigate("/login"); // Redirect ke halaman login setelah signup
     } catch (err) {
       console.error(err);
-      setError("Sign Up failed. Please try again later.");
-      setTimeout(() => setError(""), 3000); // Error hilang setelah 3 detik
+
+      // Tangkap pesan error dari backend
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error); // Set error message dari backend
+      } else {
+        setError("Sign Up failed. Please try again later.");
+      }
     }
   };
 

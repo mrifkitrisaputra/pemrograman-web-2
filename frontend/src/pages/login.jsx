@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/api"; // Import Axios instance
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState(1); // Step untuk mengatur input username/password
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(""); // State untuk menampilkan error
   const [showPassword, setShowPassword] = useState(false); // State untuk menampilkan/sembunyikan password
 
   const navigate = useNavigate(); // Inisialisasi useNavigate
@@ -21,8 +21,8 @@ const Login = () => {
         return;
       }
 
-      // Simulasi proses login (backend belum diimplementasikan)
-      const res = await axios.post("http://localhost:8080/api/login", {
+      // Kirim data ke backend
+      const res = await axiosInstance.post("/login", {
         username,
         password,
       });
@@ -32,8 +32,23 @@ const Login = () => {
       navigate("/dashboard"); // Redirect ke halaman dashboard atau halaman utama setelah login
     } catch (err) {
       console.error(err);
-      setError("Authentication failed.");
-      setTimeout(() => setError(false), 3000); // Error hilang setelah 3 detik
+
+      // Tangkap pesan error dari backend
+      if (err.response && err.response.data && err.response.data.error) {
+        const errorMessage = err.response.data.error;
+
+        if (errorMessage === "Invalid username or password") {
+          // Kembalikan ke input username jika username salah
+          setError("Invalid username or password. Please try again.");
+          setStep(1); // Reset ke input username
+          setUsername(""); // Kosongkan username
+          setPassword(""); // Kosongkan password
+        } else {
+          setError(errorMessage); // Tampilkan pesan error lainnya
+        }
+      } else {
+        setError("Authentication failed. Please try again later.");
+      }
     }
   };
 
@@ -74,7 +89,6 @@ const Login = () => {
             </span>
           </div>
         </div>
-
         {/* Terminal */}
         <div className="bg-black border border-gray-700 rounded-md p-4 overflow-hidden">
           {/* Prompt Username */}
@@ -85,7 +99,6 @@ const Login = () => {
             <span className="text-white">$</span>{" "}
             <span className="text-gray-500">login</span>
           </div>
-
           {/* Input Username */}
           {step === 1 && (
             <div>
@@ -101,7 +114,6 @@ const Login = () => {
               />
             </div>
           )}
-
           {/* Input Password */}
           {step === 2 && (
             <div className="relative">
@@ -117,14 +129,13 @@ const Login = () => {
               />
               {/* Div untuk Show/Hide Password */}
               <div
-                className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-400 cursor-pointer"
+                className="absolute right-0 top-1/2 transform  text-gray-500 hover:text-green-400 cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
               >
                 <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
               </div>
             </div>
           )}
-
           {/* Error Message */}
           {error && (
             <div className="text-red-500 mt-2">
@@ -132,7 +143,6 @@ const Login = () => {
             </div>
           )}
         </div>
-
         {/* Footer Options */}
         <div className="flex justify-end text-gray-500 mt-4">
           {/* Forgot Password Option */}

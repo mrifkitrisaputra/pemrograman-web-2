@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/api"; // Import Axios instance
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
@@ -26,8 +26,8 @@ const ForgotPassword = () => {
     }
 
     try {
-      // Simulasi proses forgot password (backend belum diimplementasikan)
-      const res = await axios.post("http://localhost:8080/api/forgot-password", {
+      // Kirim request ke backend
+      const res = await axiosInstance.post("/forgot-password", {
         email,
       });
 
@@ -37,7 +37,13 @@ const ForgotPassword = () => {
       alert("Password reset link has been sent to your email!");
     } catch (err) {
       console.error(err);
-      setError("Failed to send password reset link.");
+
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error); // Tangkap pesan error dari backend
+      } else {
+        setError("Failed to send password reset link.");
+      }
+
       setTimeout(() => setError(""), 3000); // Error hilang setelah 3 detik
     }
   };
