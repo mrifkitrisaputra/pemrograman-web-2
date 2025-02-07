@@ -1,13 +1,13 @@
 import React from "react";
-import UserList from "./UserList";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./pages/login";
 
 function App() {
-  return (
-    <div>
-      <h1>React + Golang + MySQL</h1>
-      <UserList />
-    </div>
-  );
+    return (
+      <div>
+        <Login/>
+      </div>
+    );
 }
 
 export default App;
