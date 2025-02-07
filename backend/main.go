@@ -1,81 +1,47 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    "github.com/gin-gonic/gin"
-    _ "github.com/go-sql-driver/mysql"
-    "net/http"
+	"fmt"
+	"log"
+	"time"
+
+	"backend/controllers"
+	"backend/models"
+
+	"github.com/gin-contrib/cors" // Import middleware CORS
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-var db *sql.DB
-
-func initDB() {
-    var err error
-    dsn := "root:mybackend@tcp(127.0.0.1:3306)/backend" // Ganti dengan konfigurasi Anda
-    db, err = sql.Open("mysql", dsn)
-    if err != nil {
-        panic(err)
-    }
-
-    err = db.Ping()
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Println("Connected to the database")
-}
-
 func main() {
-    // Inisialisasi database
-    initDB()
+    // Konfigurasi koneksi database
+    dsn := "root:mybackend@tcp(127.0.0.1:3307)/backend?charset=utf8mb4&parseTime=True&loc=Local"
+    db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+    if err != nil {
+        log.Fatalf("Database connection error: %v", err)
+    }
 
-    // Set mode Gin ke release (opsional)
-    gin.SetMode(gin.ReleaseMode)
+    // Auto migrate model User
+    db.AutoMigrate(&models.User{})
 
-    // Inisialisasi router Gin
-    router := gin.Default()
+    // Inisialisasi Gin
+    r := gin.Default()
 
-    // Middleware untuk mengizinkan CORS
-    router.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(http.StatusOK)
-            return
-        }
-        c.Next()
-    })
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173"}, // Izinkan frontend di port 3000
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour, // Cache preflight request selama 12 jam
+    }))
 
-    // Endpoint GET untuk mendapatkan semua pengguna
-    router.GET("/api/users", func(c *gin.Context) {
-        rows, err := db.Query("SELECT id, name, email FROM users")
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
-        defer rows.Close()
+    // Rute API
+    authController := controllers.NewAuthController(db)
+    r.POST("/api/signup", authController.Signup)
 
-        var users []map[string]interface{}
-        for rows.Next() {
-            var id int
-            var name, email string
-            err := rows.Scan(&id, &name, &email)
-            if err != nil {
-                c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-                return
-            }
-            users = append(users, map[string]interface{}{
-                "id":    id,
-                "name":  name,
-                "email": email,
-            })
-        }
-
-        c.JSON(http.StatusOK, users)
-    })
-
-    // Jalankan server pada port 8080
-    router.Run(":8080")
+    // Jalankan server
+    fmt.Println("Server running on port 8080")
+    r.Run(":8080")
 }

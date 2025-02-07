@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../api/api"; // Import Axios instance
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const [username, setUsername] = useState("");
@@ -28,8 +28,8 @@ const Signup = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
       return;
     }
 
@@ -39,14 +39,15 @@ const Signup = () => {
     }
 
     try {
-      // Simulasi proses signup (backend belum diimplementasikan)
-      const res = await axios.post("http://localhost:8080/api/signup", {
+      // Kirim data ke backend
+      const res = await axiosInstance.post("/signup", {
         username,
         email,
         password,
+        name: username, // Jika kolom `name` diperlukan, gunakan nilai ini
       });
 
-      localStorage.setItem("token", res.data.token); // Simpan token di localStorage
+      console.log("Sign Up successful:", res.data);
       alert("Sign Up successful!");
       navigate("/login"); // Redirect ke halaman login setelah signup
     } catch (err) {
@@ -71,7 +72,7 @@ const Signup = () => {
         <div className="bg-black border border-gray-700 rounded-md p-4 overflow-hidden">
           {/* Prompt Username */}
           <div>
-            <span className="text-green-400">cyber@forge</span>
+            <span className="text-green-400">kali@linux</span>
             <span className="text-white">:</span>
             <span className="text-blue-400">~</span>
             <span className="text-white">$</span>{" "}
@@ -115,7 +116,7 @@ const Signup = () => {
             />
             {/* Div untuk Show/Hide Password */}
             <div
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-400 cursor-pointer"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-400 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
             >
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
@@ -134,7 +135,7 @@ const Signup = () => {
             />
             {/* Div untuk Show/Hide Password */}
             <div
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-400 cursor-pointer"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-400 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
             >
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
