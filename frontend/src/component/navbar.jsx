@@ -91,6 +91,66 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Background Overlay and Popup */}
+      {isLogoutPopupOpen && (
+        <>
+          {/* Background Overlay */}
+          <div
+            className="fixed inset-0 backdrop-blur-[2.5px] z-40"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent clicks on overlay from closing the popup
+            }}
+          ></div>
+
+          {/* Popup */}
+          <div
+            className="fixed inset-0 flex justify-center items-center z-50"
+            onClick={(e) => e.stopPropagation()} // Prevent clicks inside popup from closing it
+          >
+            <div
+              className="bg-[#1E1E1E] rounded-lg p-6 w-96 border border-gray-700 shadow-2xl"
+              onClick={(e) => e.stopPropagation()} // Ensure only popup is clickable
+            >
+              <h2 className="text-white text-xl font-bold mb-4">Confirm Logout</h2>
+              <p className="text-gray-300 mb-4">
+                Type your username <span className="font-semibold text-red-400">"{username}"</span> to confirm logout
+              </p>
+              <input
+                type="text"
+                value={logoutInput}
+                onChange={(e) => setLogoutInput(e.target.value)}
+                className="w-full bg-gray-800 text-white rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Enter username"
+              />
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setIsLogoutPopupOpen(false)} // Close popup on cancel
+                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (logoutInput === username) {
+                      console.log("User logged out");
+                      setIsLogoutPopupOpen(false); // Close popup after logout
+                    }
+                  }}
+                  disabled={logoutInput !== username}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    logoutInput === username
+                      ? "bg-red-500 hover:bg-red-600 text-red-400"
+                      : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </nav>
   );
 };
