@@ -86,7 +86,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+    <div className="min-h-screen bg-[#1E1E1E] text-green-400 font-mono flex items-center justify-center">
       {/* Container Utama */}
       <div className="w-full max-w-md p-6 space-y-6">
         {/* Header */}
@@ -97,7 +97,7 @@ const ResetPassword = () => {
         </div>
 
         {/* Terminal */}
-        <div className="bg-black border border-gray-700 rounded-md p-4 overflow-hidden">
+        <div className="bg-[#1E1E1E] border border-gray-700 rounded-md p-4 overflow-hidden">
           {/* Prompt New Password */}
           <div>
             <span className="text-green-400">cyber@forge</span>

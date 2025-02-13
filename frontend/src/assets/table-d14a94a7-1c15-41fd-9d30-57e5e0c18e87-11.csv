@@ -1,0 +1,7 @@
+﻿Tools Management (CRUD),Menampilkan, menambah, mengedit, dan menghapus tools cybersecurity,React (Frontend), Golang (Backend), PostgreSQL
+Pencarian & Filter,Mencari tools berdasarkan nama, kategori, atau deskripsi,React Hooks, API Query Params
+Google Dorking,Fitur built-in untuk melakukan pencarian lanjutan menggunakan teknik Google Dorking,Golang Backend, Frontend UI
+Kategori Management,Mengelompokkan tools berdasarkan kategori seperti Pentesting, Forensic, Exploitation, dll.,Golang API, PostgreSQL
+Import & Export Data,Ekspor dan impor daftar tools dalam format JSON/CSV,File Upload API (Golang), Frontend Form
+Statistik (Opsional),Menampilkan statistik jumlah tools per kategori dalam bentuk grafik,Golang Backend, React + Chart.js
+Authentication (Opsional),Menjaga keamanan data dengan sistem login/logout menggunakan JWT,Golang (JWT), React
