@@ -6,7 +6,7 @@ import Signup from "./pages/signup";
 import ForgotPassword from "./pages/forgotpassword";
 import ResetPassword from "./pages/resetpassword";
 import Tools from "./pages/Tools";
-// import ResetPassword from "./pages/";
+import GoogleDorking from "./pages/google-dorking";
 // import ResetPassword from "./pages/resetpassword";
 
 
@@ -17,6 +17,7 @@ const App = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Homepage />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/google-dorking" element={<GoogleDorking />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
