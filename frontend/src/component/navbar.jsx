@@ -30,7 +30,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="py-5 px-8 flex justify-between items-center">
+    <nav className="py-5 px-8 flex justify-between items-center z-50 relative">
       {/* Logo */}
       <div className="text-2xl font-bold flex items-center space-x-7">
         <img src={Logo} alt="Cyber Forge Logo" className="h-10 w-10" />

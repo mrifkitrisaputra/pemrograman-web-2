@@ -1,0 +1,242 @@
+[
+    {
+      "name": "Directory Listing",
+      "icon": "https://img.icons8.com/color/48/folder-invoices.png",
+      "query": "intitle:index.of",
+      "type": "google"
+    },
+    {
+      "name": "Configuration Files",
+      "icon": "https://img.icons8.com/color/48/settings--v1.png",
+      "query": "ext:xml | ext:conf | ext:cnf | ext:reg | ext:inf | ext:rdp | ext:cfg | ext:txt | ext:ora | ext:ini",
+      "type": "google"
+    },
+    {
+      "name": "Database Files",
+      "icon": "https://img.icons8.com/color/48/database--v1.png",
+      "query": "ext:sql | ext:dbf | ext:mdb",
+      "type": "google"
+    },
+    {
+      "name": "WordPress",
+      "icon": "https://img.icons8.com/color/48/wordpress.png",
+      "query": "inurl:wp- | inurl:wp-content | inurl:wp-includes | inurl:plugins | inurl:uploads | inurl:themes | inurl:download",
+      "type": "google"
+    },
+    {
+      "name": "Log Files",
+      "icon": "https://img.icons8.com/?size=100&id=dlPq99z6DwTb&format=png&color=000000",
+      "query": "ext:log",
+      "type": "google"
+    },
+    {
+      "name": "Backup and Old Files",
+      "icon": "https://img.icons8.com/?size=100&id=31477&format=png&color=000000",
+      "query": "ext:bkf | ext:bkp | ext:bak | ext:old | ext:backup",
+      "type": "google"
+    },
+    {
+      "name": "Login Pages",
+      "icon": "https://img.icons8.com/color/48/login-rounded-right.png",
+      "query": "inurl:login | inurl:signin | intitle:Login | intitle: signin | inurl:auth",
+      "type": "google"
+    },
+    {
+      "name": "SQL Errors",
+      "icon": "https://img.icons8.com/color/48/error--v1.png",
+      "query": "intext:\"sql syntax near\" | intext:\"syntax error has occurred\" | intext:\"incorrect syntax near\" | intext:\"unexpected end of SQL command\" | intext:\"Warning: mysql_connect()\" | intext:\"Warning: mysql_query()\" | intext:\"Warning: pg_connect()\"",
+      "type": "google"
+    },
+    {
+      "name": "Apache Config Files",
+      "icon": "https://img.icons8.com/?size=100&id=OrZMxhqm7nsr&format=png&color=000000",
+      "query": "filetype:config \"apache\"",
+      "type": "google"
+    },
+    {
+      "name": "Robots.txt File",
+      "icon": "https://img.icons8.com/?size=100&id=0pTIwwYcK7dy&format=png&color=000000",
+      "query": "/robots.txt",
+      "type": "google"
+    },
+    {
+      "name": "Whois",
+      "icon": "https://img.icons8.com/color/48/whois.png",
+      "urlTemplate": "https://www.whois.com/whois/{targetDomain}",
+      "type": "custom"
+    },
+    {
+      "name": "Publicly Exposed Documents",
+      "icon": "https://img.icons8.com/color/48/documents.png",
+      "query": "ext:doc | ext:docx | ext:odt | ext:pdf | ext:rtf | ext:sxw | ext:psw | ext:ppt | ext:pptx | ext:pps | ext:csv",
+      "type": "google"
+    },
+    {
+      "name": "phpinfo()",
+      "icon": "https://img.icons8.com/?size=100&id=121463&format=png&color=000000",
+      "query": "ext:php intitle:phpinfo \"published by the PHP Group\"",
+      "type": "google"
+    },
+    {
+      "name": "Finding Backdoor",
+      "icon": "https://img.icons8.com/?size=100&id=7msJIrmR4mOD&format=png&color=000000",
+      "query": "inurl:shell | inurl:backdoor | inurl:wso | inurl:cmd | shadow | passwd | boot.ini | inurl:backdoor",
+      "type": "google"
+    },
+    {
+      "name": "Install / Setup files",
+      "icon": "https://img.icons8.com/color/48/installing-updates.png",
+      "query": "inurl:readme | inurl:license | inurl:install | inurl:setup | inurl:config",
+      "type": "google"
+    },
+    {
+      "name": "Open Redirects",
+      "icon": "https://img.icons8.com/?size=100&id=5bt0dHg2NBNZ&format=png&color=000000",
+      "query": "inurl:redir | inurl:url | inurl:redirect | inurl:return | inurl:src=http | inurl:r=http",
+      "type": "google"
+    },
+    {
+      "name": "Apache STRUTS RCE",
+      "icon": "https://img.icons8.com/?size=100&id=12Xk5enJGiNJ&format=png&color=000000",
+      "query": "ext:action | ext:struts | ext:do",
+      "type": "google"
+    },
+    {
+      "name": "3rd Party Exposure",
+      "icon": "https://img.icons8.com/?size=100&id=108349&format=png&color=000000",
+      "urlTemplate": "https://www.google.com/search?q=site:http://ideone.com | site:http://codebeautify.org | site:http://codeshare.io | site:http://codepen.io | site:http://repl.it | site:http://justpaste.it | site:http://pastebin.com | site:http://jsfiddle.net | site:http://trello.com | site:*.atlassian.net | site:bitbucket.org+\"{targetDomain}\"",
+      "type": "custom"
+    },
+    {
+      "name": "Check Security Headers",
+      "icon": "https://img.icons8.com/color/48/security-checked.png",
+      "urlTemplate": "https://securityheaders.com/?q={targetDomain}&followRedirects=on",
+      "type": "custom"
+    },
+    {
+      "name": "Gitlab",
+      "icon": "https://img.icons8.com/color/48/gitlab.png",
+      "urlTemplate": "https://www.google.com/search?q=inurl:gitlab {targetDomain}",
+      "type": "custom"
+    },
+    {
+      "name": "Find Pastebin Entries",
+      "icon": "https://img.icons8.com/?size=100&id=ZX0WLiOLJ-7p&format=png&color=000000",
+      "urlTemplate": "https://www.google.com/search?q=site:pastebin.com {targetDomain}",
+      "type": "custom"
+    },
+    {
+      "name": ".htacces sensitive files",
+      "icon": "https://img.icons8.com/?size=100&id=3e0VGst16Oy4&format=png&color=000000",
+      "query": "inurl:\"/phpinfo.php\" | inurl:\".htaccess\"",
+      "type": "google"
+    },
+    {
+      "name": "Find Subdomains",
+      "icon": "https://img.icons8.com/?size=100&id=TaZhYSpDffuN&format=png&color=000000",
+      "urlTemplate": "https://www.google.com/search?q=site:*.{targetDomain}",
+      "type": "custom"
+    },
+    {
+      "name": "Find Sub-Subdomains",
+      "icon": "https://img.icons8.com/?size=100&id=lyQAxQlAg058&format=png&color=000000",
+      "urlTemplate": "https://www.google.com/search?q=site:*.*.{targetDomain}",
+      "type": "custom"
+    },
+    {
+      "name": ".git folder",
+      "icon": "https://img.icons8.com/color/48/git.png",
+      "urlTemplate": "https://www.google.com/search?q=inurl:\"/.git\"{targetDomain} -github",
+      "type": "custom"
+    },
+    {
+      "name": "Search in SHODAN (Login)",
+      "icon": "https://i.postimg.cc/mDkS4knx/pngwing-com-17.png",
+      "urlTemplate": "https://www.shodan.io/search?query=ssl.cert.subject.CN:\"{targetDomain}\" 200",
+      "type": "custom"
+    },
+    {
+      "name": "Search in Bitbucket and Atlassian", 
+      "icon": "https://img.icons8.com/color/48/bitbucket.png", 
+      "urlTemplate": "https://www.google.com/search?q=site:atlassian.net | site:bitbucket.org \"{targetDomain}\"", 
+      "type": "custom" 
+    },
+    {
+      "name": "Search in Stakeoverflow", 
+      "icon": "https://img.icons8.com/color/48/stackoverflow.png", 
+      "urlTemplate": "https://www.google.com/search?q=site:stackoverflow.com \"{targetDomain}\"", 
+      "type": "custom" 
+    },
+    {
+      "name": "Search in Github", 
+      "icon": "https://img.icons8.com/color/48/github.png", 
+      "urlTemplate": "https://github.com/search?q=%22*.{targetDomain}%22&type=repositories", 
+      "type": "custom" 
+    },
+    {
+      "name": "Search in OpenBugBounty", 
+      "icon": "https://img.icons8.com/color/48/bug.png", 
+      "urlTemplate": "https://www.openbugbounty.org/search/?search={targetDomain}", 
+      "type": "custom" 
+    },
+    {
+      "name": "Search in Reddit", 
+      "icon": "https://img.icons8.com/color/48/reddit.png", 
+      "urlTemplate": "https://www.reddit.com/search/?q={targetDomain}d&rdt=63390", 
+      "type": "custom" 
+    },
+    {
+      "name": "Test CrossDomain", 
+      "icon": "https://img.icons8.com/?size=100&id=K1QBuZkYrXnh&format=png&color=000000", 
+      "urlTemplate": "https://img.icons8.com/?size=100&id=K1QBuZkYrXnh&format=png&color=000000", 
+      "type": "custom" 
+    },
+    {
+      "name": "Check in ThreatCrowd", 
+      "icon": "https://i.postimg.cc/0jdGdSMw/home-1.png", 
+      "urlTemplate": "http://ci-www.threatcrowd.org/domain.php?domain={targetDomain}", 
+      "type": "custom" 
+    },
+    {
+      "name": "Digital Ocean Spaces", 
+      "icon": "https://i.postimg.cc/x1Svptyb/Digital-Ocean-logo.png", 
+      "urlTemplate": "https://www.google.com/search?q=site:digitaloceanspaces.com%20%22{targetDomain}%22", 
+      "type": "custom" 
+    },
+    {
+      "name": "Find .SWF file (Google)", 
+      "icon": "https://i.postimg.cc/13KT5gv4/pngwing-com-18.png", 
+      "urlTemplate": "https://www.google.com/search?q=inurl:{targetDomain}%20ext:swf", 
+      "type": "custom" 
+    },
+    {
+      "name": "Find .SWF file (Yandex)", 
+      "icon": "https://i.postimg.cc/BvTvvBdH/swf.png", 
+      "urlTemplate": "https://yandex.com/search/?text=site%3A{targetDomain}++mime%3Aswf&lr=112653", 
+      "type": "custom" 
+    },
+    {
+      "name": "Search in Wayback Machine", 
+      "icon": "https://i.postimg.cc/jjxHMS07/pngwing-com-19.png", 
+      "urlTemplate": "https://web.archive.org/web/*/{targetDomain}/*", 
+      "type": "custom" 
+    },
+    {
+      "name": "Reverse IP Lookup", 
+      "icon": "https://img.icons8.com/color/48/ip-address.png", 
+      "urlTemplate": "https://viewdns.info/reverseip/?host={targetDomain}&t=1", 
+      "type": "custom" 
+    },
+    {
+      "name": "Check in Censys (IP4)", 
+      "icon": "https://i.postimg.cc/SNbYmjXB/image-10.png", 
+      "urlTemplate": "https://search.censys.io/search?resource=hosts&sort=RELEVANCE&per_page=25&virtual_hosts=EXCLUDE&q={targetDomain}", 
+      "type": "custom" 
+    },
+    {
+      "name": "API Endpoints - WSDL", 
+      "icon": "https://img.icons8.com/color/48/api-settings.png", 
+      "query": "filetype:wsdl | filetype:WSDL | ext:svc | inurl:wsdl | Filetype: ?wsdl | inurl:asmx?wsdl | inurl:jws?wsdl | intitle:_vti_bin/sites.asmx?wsdl | inurl:_vti_bin/sites.asmx?wsdl", 
+      "type": "google" 
+    }
+  ]
