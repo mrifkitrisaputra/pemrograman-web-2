@@ -16,43 +16,37 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     // Validasi input
     if (!username || !email || !password || !confirmPassword) {
       setError("All fields are required.");
       return;
     }
-
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError("Please enter a valid email address.");
       return;
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
       return;
     }
-
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-
     try {
       // Kirim data ke backend
       const res = await axiosInstance.post("/signup", {
         username,
         email,
         password,
+        password_confirmation: confirmPassword, // Tambahkan ini
         name: username, // Jika kolom `name` diperlukan, gunakan nilai ini
       });
-
       console.log("Sign Up successful:", res.data);
       alert("Sign Up successful!");
       navigate("/login"); // Redirect ke halaman login setelah signup
     } catch (err) {
       console.error(err);
-
       // Tangkap pesan error dari backend
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error); // Set error message dari backend
