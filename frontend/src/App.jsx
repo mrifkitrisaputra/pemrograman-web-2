@@ -14,8 +14,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
+          <Route path="/" element={<Signup />} />
         <Route element={<Layout />}>
-          <Route path="/" element={<Homepage />} />
           <Route path="/tools" element={<Tools />} />
           <Route path="/google-dorking" element={<GoogleDorking />} />
         </Route>

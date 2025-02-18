@@ -10,12 +10,15 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(""); // State untuk menampilkan error
+  const [successMessage, setSuccessMessage] = useState(""); // State untuk menampilkan pesan sukses
   const [showPassword, setShowPassword] = useState(false); // State untuk menampilkan/sembunyikan password
-
   const navigate = useNavigate(); // Inisialisasi useNavigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Reset error message
+    setSuccessMessage(""); // Reset success message
+
     // Validasi input
     if (!username || !email || !password || !confirmPassword) {
       setError("All fields are required.");
@@ -33,6 +36,7 @@ const Signup = () => {
       setError("Passwords do not match.");
       return;
     }
+
     try {
       // Kirim data ke backend
       const res = await axiosInstance.post("/signup", {
@@ -43,8 +47,19 @@ const Signup = () => {
         name: username, // Jika kolom `name` diperlukan, gunakan nilai ini
       });
       console.log("Sign Up successful:", res.data);
-      alert("Sign Up successful!");
-      navigate("/login"); // Redirect ke halaman login setelah signup
+      setSuccessMessage("Sign Up berhasil"); // Set pesan sukses
+      setError(""); // Reset error message
+
+      // Reset form setelah berhasil
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+
+      // Redirect ke halaman login setelah signup
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000); // Tunggu 2 detik sebelum redirect
     } catch (err) {
       console.error(err);
       // Tangkap pesan error dari backend
@@ -66,7 +81,6 @@ const Signup = () => {
           <h1 className="text-2xl font-bold">Cyber Forge</h1>
           <p className="text-sm">Create your account</p>
         </div>
-
         {/* Terminal */}
         <div className="bg-[#1E1E1E] border border-gray-600 rounded-md p-4 overflow-hidden">
           {/* Prompt Username */}
@@ -77,7 +91,6 @@ const Signup = () => {
             <span className="text-white">$</span>{" "}
             <span className="text-gray-500">signup</span>
           </div>
-
           {/* Input Username */}
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faUser} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500" />
@@ -90,7 +103,6 @@ const Signup = () => {
               placeholder="Enter your username..."
             />
           </div>
-
           {/* Input Email */}
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faEnvelope} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500" />
@@ -102,7 +114,6 @@ const Signup = () => {
               placeholder="user@example.com"
             />
           </div>
-
           {/* Input Password */}
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faLock} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500" />
@@ -121,7 +132,6 @@ const Signup = () => {
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
             </div>
           </div>
-
           {/* Input Confirm Password */}
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faLock} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-green-500" />
@@ -140,15 +150,19 @@ const Signup = () => {
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
             </div>
           </div>
-
           {/* Error Message */}
           {error && (
             <div className="text-red-500 mt-2">
               <span>{error}</span>
             </div>
           )}
+          {/* Success Message */}
+          {successMessage && (
+            <div className="text-green-500 mt-2">
+              <span>{successMessage}</span>
+            </div>
+          )}
         </div>
-
         {/* Footer Options */}
         <div className="flex justify-between text-gray-500 mt-4">
           {/* Back to Login */}
@@ -158,7 +172,6 @@ const Signup = () => {
           >
             Back to Login
           </div>
-
           {/* Sign Up */}
           <div
             className="text-blue-400 cursor-pointer hover:underline"
