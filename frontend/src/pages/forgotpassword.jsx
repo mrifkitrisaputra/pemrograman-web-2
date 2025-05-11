@@ -1,50 +1,49 @@
 import React, { useState } from "react";
-import axiosInstance from "../api/api"; // Import Axios instance
+import axiosInstance from "../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate(); // Inisialisasi useNavigate
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     // Validasi input
     if (!email) {
       setError("Email is required.");
+      setIsLoading(false);
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError("Please enter a valid email address.");
+      setIsLoading(false);
       return;
     }
 
     try {
       // Kirim request ke backend
-      const res = await axiosInstance.post("/forgot-password", {
-        email,
-      });
+      await axiosInstance.post("/forgot-password", { email });
 
-      console.log("Password reset request sent:", res.data);
-      setSuccess(true);
-      setError("");
       alert("Password reset link has been sent to your email!");
+      navigate("/login");
+
     } catch (err) {
       console.error(err);
 
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error); // Tangkap pesan error dari backend
-      } else {
-        setError("Failed to send password reset link.");
-      }
-
-      setTimeout(() => setError(""), 3000); // Error hilang setelah 3 detik
+      const errorMessage = err.response?.data?.error || "Failed to send reset link.";
+      setError(errorMessage);
+      setTimeout(() => setError(""), 3000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,9 +53,8 @@ const ForgotPassword = () => {
       <div className="w-full max-w-md p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          {/* Judul */}
           <h1 className="text-xl font-bold">Forgot Password</h1>
-          <p className="text-sm">Enter your email to reset your password.</p>
+          <p className="text-sm">Enter your email to receive a password reset link.</p>
         </div>
 
         {/* Terminal */}
@@ -78,7 +76,8 @@ const ForgotPassword = () => {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-2 py-1" // Padding kiri untuk ikon
+              disabled={isLoading}
+              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-2 py-1"
               placeholder="user@example.com"
             />
           </div>
@@ -89,32 +88,25 @@ const ForgotPassword = () => {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Success Message */}
-          {success && (
-            <div className="text-green-400 mt-2">
-              <span>Password reset link has been sent to your email!</span>
-            </div>
-          )}
         </div>
 
         {/* Footer Options */}
         <div className="flex justify-between text-gray-500 mt-4">
-          {/* Back to Login */}
           <div
             className="text-blue-400 cursor-pointer hover:underline"
-            onClick={() => navigate("/login")} // Navigasi ke halaman login
+            onClick={() => navigate("/login")}
           >
             Back to Login
           </div>
 
-          {/* Submit Button */}
-          <div
-            className="text-blue-400 cursor-pointer hover:underline"
-            onClick={handleSubmit} // Handle submit
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className={`text-blue-400 cursor-pointer hover:underline ${isLoading ? 'opacity-50' : ''}`}
           >
-            Reset Password
-          </div>
+            {isLoading ? "Sending..." : "Send Reset Link"}
+          </button>
         </div>
       </div>
     </div>

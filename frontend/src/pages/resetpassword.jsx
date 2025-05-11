@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../api/api"; // Import Axios instance
+import axiosInstance from "../api/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,45 +9,52 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State untuk menampilkan/sembunyikan password
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const token = queryParams.get("token");
+  const email = queryParams.get("email");
+
+  console.log("Token:", token);
+  console.log("Email:", email);
 
   // Validasi token saat halaman dimuat
   useEffect(() => {
     const validateToken = async () => {
-      if (!token) {
+      if (!token || !email) {
         setError("Invalid or missing token.");
-        setTimeout(() => navigate("/forgot-password"), 3000); // Redirect ke forgot password jika token tidak ada
+        setTimeout(() => navigate("/forgot-password"), 3000);
         return;
       }
 
       try {
-        // Kirim token ke backend untuk validasi
-        await axiosInstance.post("/reset-password", { token });
+        const res = await axiosInstance.get("/check-reset-token", {
+          params: { token, email },
+        });
+
+        console.log("Token valid:", res.data.message);
       } catch (err) {
         console.error(err);
 
-        if (err.response && err.response.data && err.response.data.error) {
-          setError(err.response.data.error); // Tangkap pesan error dari backend
-        } else {
-          setError("Invalid or expired token.");
-        }
+        const errorMessage =
+          err.response?.data?.error ||
+          "Invalid or expired token.";
 
-        setTimeout(() => navigate("/forgot-password"), 3000); // Redirect ke forgot password jika token tidak valid
-      }
+        setError(errorMessage);
+
+        setTimeout(() => navigate("/forgot-password"), 3000);
+    }
     };
 
     validateToken();
-  }, [token, navigate]);
+  }, [token, email, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validasi input
     if (!password || !confirmPassword) {
       setError("All fields are required.");
       return;
@@ -58,30 +65,31 @@ const ResetPassword = () => {
       return;
     }
 
+    setIsLoading(true);
+    setError("");
+
     try {
-      // Kirim request ke backend
-      await axiosInstance.post("/reset-password", { token, password });
+      const res = await axiosInstance.post("/reset-password", {
+        token,
+        email,
+        password,
+        password_confirmation: confirmPassword,
+      });
 
-      console.log("Password reset successful");
-      setSuccess(true);
-      setError("");
-
-      // Arahkan pengguna ke halaman login setelah 2 detik
-      setTimeout(() => {
-        navigate("/login"); // Navigasi ke halaman login
-      }, 2000);
-
-      alert("Your password has been reset successfully! Redirecting to login...");
+      console.log("Password reset successful:", res.data);
+      
+      alert("Your password has been successfully reset!");
+      navigate("/login");
     } catch (err) {
-      console.error(err);
+      console.error("Error resetting password:", err);
 
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error); // Tangkap pesan error dari backend
-      } else {
-        setError("Something went wrong. Please try again later.");
-      }
+      const errorMessage =
+        err.response?.data?.error ||
+        "Something went wrong. Please try again later.";
 
-      setTimeout(() => setError(""), 3000); // Error hilang setelah 3 detik
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,7 +99,6 @@ const ResetPassword = () => {
       <div className="w-full max-w-md p-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          {/* Judul */}
           <h1 className="text-xl font-bold">Reset Password</h1>
           <p className="text-sm">Enter your new password.</p>
         </div>
@@ -111,38 +118,38 @@ const ResetPassword = () => {
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faLock} className="absolute top-1/2 transform -translate-y-1/2 text-green-500" />
             <input
-              type={showPassword ? "text" : "password"} // Toggle antara "text" dan "password"
+              type={showPassword ? "text" : "password"}
               autoFocus
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-8 py-1" // Padding kiri untuk ikon, kanan untuk mata
+              disabled={isLoading}
+              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-8 py-1"
               placeholder="Enter your new password"
             />
-            {/* Div untuk Show/Hide Password */}
             <div
               className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-400 cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
+              onClick={() => setShowPassword(!showPassword)}
             >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </div>
           </div>
 
-          {/* Input Confirm Password */}
+          {/* Confirm Password */}
           <div className="mt-4 relative">
             <FontAwesomeIcon icon={faLock} className="absolute top-1/2 transform -translate-y-1/2 text-green-500" />
             <input
-              type={showPassword ? "text" : "password"} // Toggle antara "text" dan "password"
+              type={showPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-8 py-1" // Padding kiri untuk ikon, kanan untuk mata
+              disabled={isLoading}
+              className="bg-transparent border-none outline-none text-white placeholder-gray-500 w-full pl-6 pr-8 py-1"
               placeholder="Confirm your new password"
             />
-            {/* Div untuk Show/Hide Password */}
             <div
               className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-400 cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
+              onClick={() => setShowPassword(!showPassword)}
             >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /> {/* FontAwesomeIcon */}
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </div>
           </div>
 
@@ -153,30 +160,26 @@ const ResetPassword = () => {
             </div>
           )}
 
-          {/* Success Message */}
-          {success && (
-            <div className="text-green-400 mt-2">
-              <span>Your password has been reset successfully! Redirecting...</span>
-            </div>
-          )}
+          {/* Tombol Submit */}
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className={`mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors duration-200 ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isLoading ? "Resetting..." : "Reset Password"}
+          </button>
         </div>
 
         {/* Footer Options */}
         <div className="flex justify-between text-gray-500 mt-4">
-          {/* Back to Login */}
           <div
             className="text-blue-400 cursor-pointer hover:underline"
-            onClick={() => navigate("/login")} // Navigasi ke halaman login
+            onClick={() => navigate("/login")}
           >
             Back to Login
-          </div>
-
-          {/* Submit Button */}
-          <div
-            className="text-blue-400 cursor-pointer hover:underline"
-            onClick={handleSubmit} // Handle submit
-          >
-            Reset Password
           </div>
         </div>
       </div>

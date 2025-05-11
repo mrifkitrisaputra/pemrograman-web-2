@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [step, setStep] = useState(1); // Step untuk mengatur input username/password
-  const [error, setError] = useState(""); // State untuk menampilkan error
-  const [showPassword, setShowPassword] = useState(false); // State untuk menampilkan/sembunyikan password
+  const [step, setStep] = useState(1);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const navigate = useNavigate(); // Inisialisasi useNavigate
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
@@ -27,9 +27,9 @@ const Login = () => {
         password,
       });
 
-      localStorage.setItem("token", res.data.token); // Simpan token di localStorage
+      localStorage.setItem("token", res.data.access_token);
       alert("Login successful");
-      navigate("/dashboard"); // Redirect ke halaman dashboard atau halaman utama setelah login
+      navigate("/home"); // Redirect ke halaman dashboard atau halaman utama setelah login
     } catch (err) {
       console.error(err);
 

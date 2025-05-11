@@ -15,6 +15,7 @@ const App = () => {
     <Router>
       <Routes>
           <Route path="/" element={<Signup />} />
+          <Route path="/home" element={<Homepage />} />
         <Route element={<Layout />}>
           <Route path="/tools" element={<Tools />} />
           <Route path="/google-dorking" element={<GoogleDorking />} />
