@@ -20,6 +20,11 @@ return [
 
     'driver' => env('SESSION_DRIVER', 'database'),
 
+
+    'supports_credentials' => true,
+
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost')),
+
     /*
     |--------------------------------------------------------------------------
     | Session Lifetime

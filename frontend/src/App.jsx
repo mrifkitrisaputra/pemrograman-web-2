@@ -11,7 +11,7 @@ import GoogleDorking from "./pages/google-dorking";
 
 
 const App = () => {
-  return (
+return (
     <Router>
       <Routes>
           <Route path="/" element={<Signup />} />

@@ -12,7 +12,7 @@ const Navbar = () => {
   const location = useLocation(); // Dapatkan lokasi halaman saat ini
 
   const navItems = [
-    { name: "Home", link: "/" },
+    { name: "Home", link: "/home" },
     { name: "Tools", link: "/tools" },
     { name: "Google Dorking", link: "/google-dorking" },
   ];

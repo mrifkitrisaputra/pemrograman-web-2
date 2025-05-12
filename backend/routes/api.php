@@ -32,7 +32,7 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 Route::get('/verify-email/{id}', VerifyEmailController::class);
 
 // Protected Routes (JWT Auth)
-Route::middleware('auth.jwt')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return $request->user();

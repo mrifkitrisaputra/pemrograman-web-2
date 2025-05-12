@@ -15,12 +15,8 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:5173,127.0.0.1,127.0.0.1:5173,::1')),
+
 
     /*
     |--------------------------------------------------------------------------
@@ -36,6 +32,7 @@ return [
 
     'guard' => ['web'],
 
+
     /*
     |--------------------------------------------------------------------------
     | Expiration Minutes
@@ -49,6 +46,7 @@ return [
 
     'expiration' => null,
 
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix
@@ -58,11 +56,12 @@ return [
     | security scanning initiatives maintained by open source platforms
     | that notify developers if they commit tokens into repositories.
     |
-    | See: https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning
+    | See: https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning   
     |
     */
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+
 
     /*
     |--------------------------------------------------------------------------
