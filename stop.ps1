@@ -41,4 +41,16 @@ foreach ($terminalProcess in $terminalProcesses) {
     }
 }
 
+# Tambahan: Kill Laragon process
+try {
+    $laragonProcs = Get-Process -Name laragon -ErrorAction SilentlyContinue
+    foreach ($lp in $laragonProcs) {
+        Write-Host "Forcefully killing Laragon process with ID $($lp.Id)"
+        Stop-Process -Id $lp.Id -Force
+    }
+} catch {
+    Write-Host "Failed to kill Laragon process: $_"
+}
+
 Write-Host "All related processes have been forcefully killed."
+
