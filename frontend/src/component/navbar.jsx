@@ -1,15 +1,20 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaSignOutAlt } from "react-icons/fa";
 import Logo from "../assets/logo.png";
+import axiosInstance from "../api/api"; // Import axiosInstance
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutPopupOpen, setIsLogoutPopupOpen] = useState(false);
   const [logoutInput, setLogoutInput] = useState("");
-  const username = "miquela";
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
   const dropdownRef = useRef(null);
-  const location = useLocation(); // Dapatkan lokasi halaman saat ini
+  const location = useLocation();
+  const navigate = useNavigate();
+  const authorizationHeader = token ? `Bearer ${token}` : ""; // Store the authorization header
 
   const navItems = [
     { name: "Home", link: "/home" },
@@ -29,6 +34,64 @@ const Navbar = () => {
     };
   }, []);
 
+  async function getUser() {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const response = await axiosInstance.get("/user", {
+        headers: {
+          Authorization: authorizationHeader,
+        },
+      });
+
+      setUser(response.data);
+      setUsername(response.data.name);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      navigate("/login");
+    }
+  }
+
+  useEffect(() => {
+    if (token) {
+      getUser();
+    }
+  }, [token]);
+
+const handleLogout = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Gunakan axiosInstance untuk mengirim permintaan POST ke rute logout Laravel
+    const response = await axiosInstance.post("/logout");
+
+    // Periksa apakah logout berhasil
+    if (response.status === 200) {
+      // Hapus data pengguna dan token dari state dan localStorage
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("token");
+      alert("Logout successful!");
+      // Redirect ke halaman login
+      navigate("/login");
+    } else {
+      // Tangani kesalahan jika logout gagal
+      console.error("Logout failed:", response.data);
+      // Tampilkan pesan kesalahan kepada pengguna
+      alert("Logout failed. Please try again.");
+    }
+  } catch (error) {
+    // Tangani kesalahan jaringan atau kesalahan lainnya
+    console.error("Logout error:", error);
+    alert(
+      "An error occurred during logout. Please check your network connection."
+    );
+  }
+};
+
+
   return (
     <nav className="py-5 px-8 flex justify-between items-center z-50 relative">
       {/* Logo */}
@@ -44,14 +107,16 @@ const Navbar = () => {
             <div
               className={`relative cursor-pointer px-3 py-1 transition-colors ${
                 location.pathname === item.link
-                  ? "text-green-400" // Warna hijau jika aktif
+                  ? "text-green-400"
                   : "text-white hover:text-green-400"
               }`}
             >
               {item.name}
               <span
                 className={`absolute bottom-0 left-0 w-full h-[2px] transition-transform duration-200 ease-in-out ${
-                  location.pathname === item.link ? "bg-green-400 scale-x-100" : "bg-white scale-x-0 hover:scale-x-100"
+                  location.pathname === item.link
+                    ? "bg-green-400 scale-x-100"
+                    : "bg-white scale-x-0 hover:scale-x-100"
                 }`}
               ></span>
             </div>
@@ -66,10 +131,12 @@ const Navbar = () => {
           >
             <div className="h-9 w-9 rounded-full bg-blue-500 flex items-center justify-center">
               <span className="text-white font-semibold">
-                {username[0].toUpperCase()}
+                {username ? username[0].toUpperCase() : ""}
               </span>
             </div>
-            <span className="text-white font-medium hover:text-green-400 transition-colors">{username}</span>
+            <span className="text-white font-medium hover:text-green-400 transition-colors">
+              {username}
+            </span>
           </div>
 
           {isProfileOpen && (
@@ -99,22 +166,26 @@ const Navbar = () => {
           <div
             className="fixed inset-0 backdrop-blur-[2.5px] z-40"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent clicks on overlay from closing the popup
+              e.stopPropagation();
             }}
           ></div>
 
           {/* Popup */}
           <div
             className="fixed inset-0 flex justify-center items-center z-50"
-            onClick={(e) => e.stopPropagation()} // Prevent clicks inside popup from closing it
+            onClick={(e) => e.stopPropagation()}
           >
             <div
               className="bg-[#1E1E1E] rounded-lg p-6 w-96 border border-gray-700 shadow-2xl"
-              onClick={(e) => e.stopPropagation()} // Ensure only popup is clickable
+              onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-white text-xl font-bold mb-4">Confirm Logout</h2>
+              <h2 className="text-white text-xl font-bold mb-4">
+                Confirm Logout
+              </h2>
               <p className="text-gray-300 mb-4">
-                Type your username <span className="font-semibold text-red-400">"{username}"</span> to confirm logout
+                Type your username{" "}
+                <span className="font-semibold text-red-400">"{username}"</span>{" "}
+                to confirm logout
               </p>
               <input
                 type="text"
@@ -125,22 +196,17 @@ const Navbar = () => {
               />
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setIsLogoutPopupOpen(false)} // Close popup on cancel
+                  onClick={() => setIsLogoutPopupOpen(false)}
                   className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    if (logoutInput === username) {
-                      console.log("User logged out");
-                      setIsLogoutPopupOpen(false); // Close popup after logout
-                    }
-                  }}
+                  onClick={handleLogout}
                   disabled={logoutInput !== username}
                   className={`px-4 py-2 rounded-lg transition-colors ${
                     logoutInput === username
-                      ? "bg-red-500 hover:bg-red-600 text-red-400"
+                      ? "bg-red-500 hover:bg-red-600 text-white-400"
                       : "bg-gray-700 text-gray-400 cursor-not-allowed"
                   }`}
                 >

@@ -8,7 +8,7 @@
     "concurrently": "^9.1.2"
   },
   "scripts": {
-    "start": "concurrently \"powershell.exe -NoProfile -Command Start-Process powershell -ArgumentList '-NoExit', 'cd frontend; npm run dev'\" \"powershell.exe -NoProfile -Command Start-Process powershell -ArgumentList '-NoExit', 'cd backend; php artisan serve'\"",
+    "start": "concurrently \"powershell.exe -NoProfile -Command Start-Process powershell -ArgumentList '-NoExit', 'cd frontend; npm run dev'\" \"powershell.exe -NoProfile -Command Start-Process powershell -ArgumentList '-NoExit', 'cd backend; php artisan serve'\" \"powershell.exe -NoProfile -File ./laragon.ps1\"",
     "stop": "powershell.exe -File stop.ps1"
 }
 }

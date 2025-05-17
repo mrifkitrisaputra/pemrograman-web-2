@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios"; // 🔥 Harus di-import
-import axiosInstance from "../api/api"; // Axios instance kamu
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/api"; // Import axiosInstance
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -11,42 +10,41 @@ const Login = () => {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Cegah refresh halaman
+    e.preventDefault();
+    setLoading(true);
+    setError(""); // Clear previous errors
 
     try {
-      // Ambil CSRF cookie dulu
-      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
-        withCredentials: true,
-      });
-
       const res = await axiosInstance.post("/login", {
-        username,
-        password,
+        username: username, // Use the username state
+        password: password, // Use the password state
       });
 
-      if (res.data.redirect) {
-        alert("Login successful");
-        window.location.href = res.data.redirect;
-      }
+      // Laravel Sanctum returns the token in the response data
+      const token = res.data;
 
+      if (token) {
+        // Store the token (e.g., in localStorage or an auth context)
+        localStorage.setItem("token", token); // Or use a more secure method
+        alert("Login successful!");
+        navigate("/google-dorking"); // Redirect to the home page or dashboard
+      } else {
+        setError("Login failed: Token not received.");
+      }
     } catch (err) {
       console.error("Login error:", err.response?.data || err.message);
-
-      if (err.response && err.response.status === 401) {
-        setError(err.response.data.error || "Invalid credential");
-        setStep(1);
-        setUsername("");
-        setPassword("");
-      } else {
-        setError("Authentication failed. Please try again.");
-      }
-
-      
-      setTimeout(() => setError(""), 3000);
+      setError(
+        err.response?.data.message || "Login failed. Please check your credentials."
+      );
+      setUsername("");
+      setPassword("");
+      setStep(1);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,22 +59,18 @@ const Login = () => {
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       if (step === 1) {
-        setStep(2); // Pindah ke input password
+        setStep(2);
       } else if (step === 2) {
-        handleSubmit(e); // Submit form
+        handleSubmit(e);
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-[#1E1E1E] text-green-400 font-mono flex items-center justify-center">
-      {/* Container Utama */}
       <div className="w-full max-w-md p-6 space-y-6">
-        {/* Header */}
         <div className="space-y-2">
-          {/* Judul */}
           <h1 className="text-xl font-bold">Cyber Forge</h1>
-          {/* Welcome + Sign Up */}
           <div className="flex justify-between items-center">
             <p className="text-sm">Welcome to the system</p>
             <span
@@ -88,9 +82,7 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Terminal */}
         <div className="bg-[#1E1E1E] border border-gray-700 rounded-md p-4 overflow-hidden">
-          {/* Prompt Username */}
           <div>
             <span className="text-green-400">cyber@forge</span>
             <span className="text-white">:</span>
@@ -98,8 +90,6 @@ const Login = () => {
             <span className="text-white">$</span>{" "}
             <span className="text-gray-500">login</span>
           </div>
-
-          {/* Input Username */}
           {step === 1 && (
             <div>
               <span className="text-green-400">Username:</span>{" "}
@@ -114,8 +104,6 @@ const Login = () => {
               />
             </div>
           )}
-
-          {/* Input Password */}
           {step === 2 && (
             <div className="relative">
               <span className="text-green-400">Password:</span>{" "}
@@ -136,8 +124,6 @@ const Login = () => {
               </div>
             </div>
           )}
-
-          {/* Error Message */}
           {error && (
             <div className="text-red-500 mt-2">
               <span>{error}</span>
@@ -145,7 +131,6 @@ const Login = () => {
           )}
         </div>
 
-        {/* Footer Options */}
         <div className="flex justify-end text-gray-500 mt-4">
           <span
             className="text-blue-400 cursor-pointer hover:underline"
@@ -154,6 +139,7 @@ const Login = () => {
             Forgot Password?
           </span>
         </div>
+        {loading && <p className="text-yellow-400">Loading...</p>}
       </div>
     </div>
   );

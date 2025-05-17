@@ -29,7 +29,7 @@ class SignupController extends Controller
         ]);
 
         // Generate link verifikasi
-        $token = Str::random(60); // Token bisa disimpan ke kolom tambahan jika mau
+        $token = Str::random(60);
         $url = url("/api/verify-email/" . $user->id . "?token=" . $token);
 
         // Kirim email

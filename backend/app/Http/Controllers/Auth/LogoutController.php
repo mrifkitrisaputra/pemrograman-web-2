@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class LogoutController extends Controller
 {
-    public function __invoke(Request $request)
+    function logout (Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        if (Auth::check()) {
+            $request->user()->tokens()->delete();
+        }
 
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
+        return response()->json(['message' => 'logout success']);
     }
 }

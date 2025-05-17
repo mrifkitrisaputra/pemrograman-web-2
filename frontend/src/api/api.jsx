@@ -5,7 +5,8 @@ const axiosInstance = axios.create({
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest' // Coba tambahkan ini
     }
 });
 

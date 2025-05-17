@@ -15,6 +15,17 @@ if (-not (Get-Process -Name "laragon" -ErrorAction SilentlyContinue)) {
 # Tunggu beberapa detik agar service siap
 Start-Sleep -Seconds 5
 
-# # Buka phpMyAdmin di browser default
-# Start-Process "http://localhost/phpmyadmin"
+# Path ke Brave
+$bravePath = "${env:ProgramFiles(x86)}\BraveSoftware\Brave-Browser\Application\brave.exe"
+if (-not (Test-Path $bravePath)) {
+    $bravePath = "${env:ProgramFiles}\BraveSoftware\Brave-Browser\Application\brave.exe"
+}
 
+# Buka phpMyAdmin dan localhost:5173 di Brave private window
+if (Test-Path $bravePath) {
+    Start-Process -FilePath $bravePath -ArgumentList "--incognito", "http://localhost/phpmyadmin"
+    Start-Process -FilePath $bravePath -ArgumentList "--incognito", "http://localhost:5173"
+    Write-Host "Opened phpMyAdmin and localhost:5173 in Brave incognito window."
+} else {
+    Write-Warning "Brave Browser not found. Could not open URLs."
+}
