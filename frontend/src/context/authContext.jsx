@@ -1,53 +1,31 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
-import axios from "../api/api";
+import { createContext, useContext, useState, useEffect } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const checkAuth = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await axios.get("/user");
-      setUser(res.data);
-    } catch (err) {
-      localStorage.removeItem("token");
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (credentials) => {
-    const res = await axios.post("/login", credentials);
-    const token = res.data.token; // pastikan backend return token
-    localStorage.setItem("token", token);
-    await checkAuth();
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkAuth();
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => useContext(AuthContext);
+export const ProtectedRoute = () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert('Anda harus login terlebih dahulu')
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};

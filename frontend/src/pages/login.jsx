@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../api/api"; // Import axiosInstance
+import { useAuth } from "../context/authContext";
+import axiosInstance from "../api/api";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -12,6 +13,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +33,7 @@ const Login = () => {
         // Store the token (e.g., in localStorage or an auth context)
         localStorage.setItem("token", token); // Or use a more secure method
         alert("Login successful!");
+        setIsAuthenticated(true);
         navigate("/google-dorking"); // Redirect to the home page or dashboard
       } else {
         setError("Login failed: Token not received.");
