@@ -2,12 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ToolController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\SignupController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\SignupController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,12 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 // Email Verification Route
 Route::get('/verify-email/{id}', VerifyEmailController::class);
 
+//tools
+Route::get('/tools', [ToolController::class, 'index']);
+Route::post('/tools', [ToolController::class, 'toolStore']);
+Route::get('/tools/{id}', [ToolController::class, 'show']);
+Route::put('/tools/{id}', [ToolController::class, 'update']);
+Route::delete('/tools/{id}', [ToolController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {

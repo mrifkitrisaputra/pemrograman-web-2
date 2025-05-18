@@ -1,40 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../api/api"; // Sesuaikan path jika perlu
 import { FaSearch, FaEdit, FaTrashAlt, FaTimes, FaPlus, FaFilter } from "react-icons/fa";
 
 const Tools = () => {
-  // Dummy data untuk tools
-  const initialTools = [
-    {
-      id: 1,
-      name: "Nmap",
-      category: "Pentesting",
-      description: "Network scanning tool",
-      install_command: "sudo apt install nmap",
-    },
-    {
-      id: 2,
-      name: "Metasploit",
-      category: "Exploitation",
-      description: "Penetration testing framework",
-      install_command: "sudo apt install metasploit-framework",
-    },
-    {
-      id: 3,
-      name: "Wireshark",
-      category: "Forensic",
-      description: "Packet analyzer",
-      install_command: "sudo apt install wireshark",
-    },
-    {
-      id: 4,
-      name: "John the Ripper",
-      category: "Cracking",
-      description: "Password cracking tool",
-      install_command: "sudo apt install john",
-    },
-  ];
-
-  const [tools, setTools] = useState(initialTools); // State untuk menyimpan daftar tools
+  const [tools, setTools] = useState([]); // Ganti initialTools dengan array kosong
   const [searchTerm, setSearchTerm] = useState(""); // State untuk pencarian
   const [selectedCategory, setSelectedCategory] = useState(""); // State untuk filter kategori
   const [modalOpen, setModalOpen] = useState(false); // State untuk modal add/edit tool
@@ -43,75 +12,107 @@ const Tools = () => {
     name: "",
     category: "",
     description: "",
-    install_command: "",
+    installation_command: "",
   }); // State untuk tool yang akan ditambahkan
 
-  // Fungsi untuk menambahkan tool baru dengan validasi
-  const handleAddTool = () => {
-    const { name, category, description, install_command } = toolToAdd;
+  // Fetch tools dari API saat komponen mount
+  useEffect(() => {
+    const fetchTools = async () => {
+      try {
+        const response = await axiosInstance.get("/tools");
+        setTools(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch tools:", error);
+        alert("Failed to load tools.");
+      }
+    };
 
-    // Validasi: Pastikan semua field terisi
-    if (!name || !category || !description || !install_command) {
+    fetchTools();
+  }, []);
+
+  // Fungsi untuk menambahkan tool baru ke database
+  const handleAddTool = async () => {
+    const { name, category, description, installation_command } = toolToAdd;
+    if (!name || !category || !description || !installation_command) {
       alert("Please fill in all fields.");
       return;
     }
 
-    // Validasi: Pastikan nama tool unik
-    const isNameUnique = !tools.some(
-      (tool) => tool.name.toLowerCase() === name.toLowerCase()
-    );
-    if (!isNameUnique) {
-      alert("Tool name must be unique.");
-      return;
+    try {
+      const response = await axiosInstance.post("/tools", {
+        name,
+        category,
+        description,
+        installation_command: installation_command,
+      });
+      setTools([...tools, response.data.data]);
+      setToolToAdd({
+        id: null,
+        name: "",
+        category: "",
+        description: "",
+        installation_command: "",
+      });
+      setModalOpen(false);
+      alert("Tool added successfully.");
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        const errors = Object.values(error.response.data.errors).flat().join("\n");
+        alert("Validation Errors:\n" + errors);
+      } else {
+        alert("Failed to add tool.");
+      }
     }
-
-    // Jika validasi berhasil, tambahkan tool baru
-    const newTool = {
-      id: tools.length + 1,
-      name,
-      category,
-      description,
-      install_command,
-    };
-
-    setTools([...tools, newTool]);
-    setToolToAdd({
-      id: null,
-      name: "",
-      category: "",
-      description: "",
-      install_command: "",
-    });
-    setModalOpen(false);
-    alert("Tool added successfully.");
   };
 
   // Fungsi untuk mengedit tool yang dipilih
-  const handleEditTool = () => {
-    const updatedTools = tools.map((tool) =>
-      tool.id === toolToAdd.id ? { ...tool, ...toolToAdd } : tool
-    );
-
-    setTools(updatedTools);
-    setToolToAdd({
-      id: null,
-      name: "",
-      category: "",
-      description: "",
-      install_command: "",
-    });
-    setModalOpen(false);
-    alert("Tool updated successfully.");
+  const handleEditTool = async () => {
+    const { id, name, category, description, installation_command } = toolToAdd;
+    try {
+      const response = await axiosInstance.put(`/tools/${id}`, {
+        name,
+        category,
+        description,
+        installation_command: installation_command,
+      });
+      const updatedTools = tools.map((tool) =>
+        tool.id === id ? response.data.data : tool
+      );
+      setTools(updatedTools);
+      setToolToAdd({
+        id: null,
+        name: "",
+        category: "",
+        description: "",
+        installation_command: "",
+      });
+      setModalOpen(false);
+      alert("Tool updated successfully.");
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        const errors = Object.values(error.response.data.errors).flat().join("\n");
+        alert("Validation Errors:\n" + errors);
+      } else {
+        alert("Failed to update tool.");
+      }
+    }
   };
 
-  // Fungsi untuk menghapus tool yang dipilih
-  const handleDeleteTool = (id) => {
-    const updatedTools = tools.filter((tool) => tool.id !== id);
-    setTools(updatedTools);
-    alert("Tool deleted successfully.");
+  // Fungsi untuk menghapus tool
+  const handleDeleteTool = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this tool?")) return;
+
+    try {
+      await axiosInstance.delete(`/tools/${id}`);
+      const updatedTools = tools.filter((tool) => tool.id !== id);
+      setTools(updatedTools);
+      alert("Tool deleted successfully.");
+    } catch (error) {
+      alert("Failed to delete tool.");
+    }
   };
 
-  // Fungsi untuk memfilter tools berdasarkan pencarian dan kategori
+  // Filter tools berdasarkan search & kategori
   const filteredTools = tools.filter(
     (tool) =>
       tool.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -208,7 +209,7 @@ const Tools = () => {
               <p className="text-gray-400 mb-4">{tool.description}</p>
               <div className="bg-[#1E1E1E] p-3 rounded-lg">
                 <code className="text-sm break-words">
-                  {tool.install_command}
+                  {tool.installation_command}
                 </code>
               </div>
             </div>
@@ -231,19 +232,17 @@ const Tools = () => {
                 name: "",
                 category: "",
                 description: "",
-                install_command: "",
+                installation_command: "",
               });
             }}
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 transition-colors"
           >
             <FaTimes size={20} />
           </button>
-
           {/* Header */}
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             {toolToAdd.id ? "Edit Tool" : "Add New Tool"}
           </h2>
-
           {/* Form */}
           <div className="space-y-4">
             {/* Tool Name */}
@@ -261,7 +260,6 @@ const Tools = () => {
                 placeholder="Enter tool name"
               />
             </div>
-
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
@@ -277,7 +275,6 @@ const Tools = () => {
                 placeholder="Enter category"
               />
             </div>
-
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
@@ -293,7 +290,6 @@ const Tools = () => {
                 placeholder="Enter description"
               />
             </div>
-
             {/* Install Command */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
@@ -301,18 +297,17 @@ const Tools = () => {
               </label>
               <input
                 type="text"
-                value={toolToAdd.install_command}
+                value={toolToAdd.installation_command}
                 onChange={(e) =>
                   setToolToAdd({
                     ...toolToAdd,
-                    install_command: e.target.value,
+                    installation_command: e.target.value,
                   })
                 }
                 className="w-full px-4 py-3 bg-[#2D2D2D] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter install command"
               />
             </div>
-
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4 mt-6">
               <button

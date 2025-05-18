@@ -23,8 +23,8 @@ if (-not (Test-Path $bravePath)) {
 
 # Buka phpMyAdmin dan localhost:5173 di Brave private window
 if (Test-Path $bravePath) {
-    Start-Process -FilePath $bravePath -ArgumentList "--incognito", "http://localhost/phpmyadmin"
     Start-Process -FilePath $bravePath -ArgumentList "--incognito", "http://localhost:5173"
+    Start-Process -FilePath $bravePath -ArgumentList "--incognito", "http://localhost/phpmyadmin"
     Write-Host "Opened phpMyAdmin and localhost:5173 in Brave incognito window."
 } else {
     Write-Warning "Brave Browser not found. Could not open URLs."
