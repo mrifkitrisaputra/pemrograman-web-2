@@ -50,19 +50,23 @@ class ToolController extends Controller
      */
     public function update(Request $request, Tool $tool)
     {
-        $validator = Validator::make($request->all(), [
+        // Validasi input
+        $validated = $request->validate([
             'name' => 'required|unique:tools,name,' . $tool->id . '|max:255',
             'category' => 'required|max:255',
             'description' => 'nullable|string',
             'installation_command' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        // Update tool dengan data yang sudah divalidasi
+        $tool->update($validated);
 
-        $tool->update($request->all());
-        return response()->json(['data' => $tool, 'message' => 'Tool updated successfully']);
+        $tool->refresh(); // Refresh agar ambil data terbaru dari DB
+
+        return response()->json([
+            'data' => $tool,
+            'message' => 'Tool updated successfully'
+        ]);
     }
 
     /**

@@ -36,9 +36,9 @@ Route::get('/verify-email/{id}', VerifyEmailController::class);
 //tools
 Route::get('/tools', [ToolController::class, 'index']);
 Route::post('/tools', [ToolController::class, 'toolStore']);
-Route::get('/tools/{id}', [ToolController::class, 'show']);
-Route::put('/tools/{id}', [ToolController::class, 'update']);
-Route::delete('/tools/{id}', [ToolController::class, 'destroy']);
+Route::get('/tools/{tool}', [ToolController::class, 'show']);
+Route::put('/tools/{tool}', [ToolController::class, 'update']);
+Route::delete('/tools/{tool}', [ToolController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
