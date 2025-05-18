@@ -22,17 +22,29 @@ class ToolController extends Controller
      */
     public function toolStore(Request $request)
     {
+        // Validasi dasar
         $validator = Validator::make($request->all(), [
             'name' => 'required|unique:tools|max:255',
             'category' => 'required|max:255',
             'description' => 'nullable|string',
-            'installation_command' => 'nullable|string',
+            'installation_command' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Validasi keamanan tambahan
+        $command = $request->input('installation_command');
+        if (!$this->isSafeInstallationCommand($command)) {
+            return response()->json([
+                'errors' => [
+                    'installation_command' => ['Installation command not allowed. Only specific commands are permitted.']
+                ]
+            ], 422);
+        }
+
+        // Simpan tool
         $tool = Tool::create($request->all());
         return response()->json(['data' => $tool, 'message' => 'Tool created successfully'], 201);
     }
@@ -50,23 +62,29 @@ class ToolController extends Controller
      */
     public function update(Request $request, Tool $tool)
     {
-        // Validasi input
+        // Validasi dasar
         $validated = $request->validate([
             'name' => 'required|unique:tools,name,' . $tool->id . '|max:255',
             'category' => 'required|max:255',
             'description' => 'nullable|string',
-            'installation_command' => 'nullable|string',
+            'installation_command' => 'required|string',
         ]);
 
-        // Update tool dengan data yang sudah divalidasi
+        // Validasi keamanan tambahan
+        $command = $request->input('installation_command');
+        if (!$this->isSafeInstallationCommand($command)) {
+            return response()->json([
+                'errors' => [
+                    'installation_command' => ['Installation command not allowed. Only specific commands are permitted.']
+                ]
+            ], 422);
+        }
+
+        // Update tool
         $tool->update($validated);
+        $tool->refresh();
 
-        $tool->refresh(); // Refresh agar ambil data terbaru dari DB
-
-        return response()->json([
-            'data' => $tool,
-            'message' => 'Tool updated successfully'
-        ]);
+        return response()->json(['data' => $tool, 'message' => 'Tool updated successfully']);
     }
 
     /**
@@ -76,5 +94,33 @@ class ToolController extends Controller
     {
         $tool->delete();
         return response()->json(['message' => 'Tool deleted successfully']);
+    }
+
+    /**
+     * Fungsi untuk memvalidasi apakah installation_command aman
+     *
+     * @param string $command
+     * @return bool
+     */
+    private function isSafeInstallationCommand($command)
+    {
+        $command = trim($command);
+
+        $allowedPatterns = [
+            '/^sudo\s+apt\s+install\s+[a-zA-Z0-9\-\_\.]+$/',         // sudo apt install
+            '/^apt\s+update$/i',                                      // apt update
+            '/^apt\s+upgrade(\s+\S+)?$/i',                            // apt upgrade
+            '/^apt\s+remove\s+[a-zA-Z0-9\-\_\.]+$/i',               // apt remove
+            '/^apt\s+purge\s+[a-zA-Z0-9\-\_\.]+$/i',                // apt purge
+            '/^sudo\s+apt-get\s+install\s+[a-zA-Z0-9\-\_\.]+$/i',    // sudo apt-get install
+        ];
+
+        foreach ($allowedPatterns as $pattern) {
+            if (preg_match($pattern, $command)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
