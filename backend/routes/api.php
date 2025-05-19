@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ToolController;
+use App\Http\Controllers\ToolShellController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\SignupController;
@@ -35,10 +36,15 @@ Route::get('/verify-email/{id}', VerifyEmailController::class);
 
 //tools
 Route::get('/tools', [ToolController::class, 'index']);
-Route::post('/tools', [ToolController::class, 'toolStore']);
+Route::post('/tools', [ToolController::class, 'store']);
+Route::post('/execute-wsl', [ToolController::class, 'executeWSL']);
+Route::post('/tool/check-install', [ToolController::class, 'checkAndInstallTool']);
 Route::get('/tools/{tool}', [ToolController::class, 'show']);
 Route::put('/tools/{tool}', [ToolController::class, 'update']);
 Route::delete('/tools/{tool}', [ToolController::class, 'destroy']);
+
+// Tool Shell Routes
+Route::get('/run-tool', [ToolShellController::class, 'runTool']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {

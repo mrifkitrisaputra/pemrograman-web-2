@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../api/api"; // Sesuaikan path jika perlu
+import axiosInstance from "../api/api";
 import { FaSearch, FaEdit, FaTrashAlt, FaTimes, FaPlus, FaFilter } from "react-icons/fa";
 
 const Tools = () => {
-  const [tools, setTools] = useState([]); // Ganti initialTools dengan array kosong
-  const [searchTerm, setSearchTerm] = useState(""); // State untuk pencarian
-  const [selectedCategory, setSelectedCategory] = useState(""); // State untuk filter kategori
-  const [modalOpen, setModalOpen] = useState(false); // State untuk modal add/edit tool
+  const [tools, setTools] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
   const [toolToAdd, setToolToAdd] = useState({
     id: null,
     name: "",
     category: "",
     description: "",
     installation_command: "",
-  }); // State untuk tool yang akan ditambahkan
+  });
+  const [loading, setLoading] = useState(false); // Untuk loading
+  const [message, setMessage] = useState({ type: "", text: "" }); // Untuk notifikasi
 
   // Fetch tools dari API saat komponen mount
   useEffect(() => {
@@ -26,26 +28,54 @@ const Tools = () => {
         alert("Failed to load tools.");
       }
     };
-
     fetchTools();
   }, []);
 
-  // Fungsi untuk menambahkan tool baru ke database
+  // Fungsi untuk menambahkan tool baru ke database + cek & install via WSL
   const handleAddTool = async () => {
     const { name, category, description, installation_command } = toolToAdd;
+
     if (!name || !category || !description || !installation_command) {
-      alert("Please fill in all fields.");
+      setMessage({ type: "error", text: "Please fill in all fields." });
       return;
     }
 
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+
     try {
-      const response = await axiosInstance.post("/tools", {
+      // 1. Cek apakah tool sudah ada di sistem
+      setMessage({ type: "info", text: `Checking if ${name} is installed...` });
+      const checkResponse = await axiosInstance.post("/tool/check-install", {
+        tool: name,
+      });
+
+      const isInstalled = checkResponse.data.installed;
+
+      if (!isInstalled) {
+        // 2. Jika belum, jalankan instalasi
+        setMessage({ type: "info", text: `Installing ${name} via WSL...` });
+
+        const execResponse = await axiosInstance.post("/execute-wsl", {
+          command: "sudo apt update && " + installation_command + " -y",
+        });
+
+        if (!execResponse.data.success) {
+          throw new Error(execResponse.data.error || "Installation failed.");
+        }
+      }
+
+      // 3. Simpan tool ke database Laravel
+      setMessage({ type: "info", text: "Saving to database..." });
+
+      const toolResponse = await axiosInstance.post("/tools", {
         name,
         category,
         description,
-        installation_command: installation_command,
+        installation_command,
       });
-      setTools([...tools, response.data.data]);
+
+      setTools([...tools, toolResponse.data.data]);
       setToolToAdd({
         id: null,
         name: "",
@@ -53,15 +83,16 @@ const Tools = () => {
         description: "",
         installation_command: "",
       });
-      setModalOpen(false);
-      alert("Tool added successfully.");
+      setMessage({ type: "success", text: `Tool "${name}" added successfully.` });
+
     } catch (error) {
-      if (error.response && error.response.status === 422) {
-        const errors = Object.values(error.response.data.errors).flat().join("\n");
-        alert("Validation Errors:\n" + errors);
-      } else {
-        alert("Failed to add tool.");
-      }
+      console.error("Error adding/installing tool:", error);
+      setMessage({
+        type: "error",
+        text: `Failed to add/install tool: ${error.message || "Unknown error"}`,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,7 +104,7 @@ const Tools = () => {
         name,
         category,
         description,
-        installation_command: installation_command,
+        installation_command,
       });
       const updatedTools = tools.map((tool) =>
         tool.id === id ? response.data.data : tool
@@ -101,7 +132,6 @@ const Tools = () => {
   // Fungsi untuk menghapus tool
   const handleDeleteTool = async (id) => {
     if (!window.confirm("Are you sure you want to delete this tool?")) return;
-
     try {
       await axiosInstance.delete(`/tools/${id}`);
       const updatedTools = tools.filter((tool) => tool.id !== id);
@@ -216,6 +246,7 @@ const Tools = () => {
           ))}
         </div>
       </div>
+
       {/* Modal */}
       <div
         className={`fixed inset-0 bg-black/70 flex items-center justify-center p-4 ${
@@ -326,6 +357,30 @@ const Tools = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification */}
+      {message.text && (
+        <div
+          className={`fixed bottom-5 right-5 p-4 rounded-md text-sm shadow-lg z-50 animate-fade-in ${
+            message.type === "success"
+              ? "bg-green-100 text-green-800"
+              : message.type === "error"
+              ? "bg-red-100 text-red-800"
+              : message.type === "info"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* Loading Spinner */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="w-12 h-12 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+        </div>
+      )}
     </div>
   );
 };

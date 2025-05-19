@@ -19,11 +19,13 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route element={<ProtectedRoute/>}>
+          <Route path="/home" element={<Homepage />} />
+          </Route>
 
           {/* Protected Route */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              <Route path="/home" element={<Homepage />} />
               <Route path="/tools" element={<Tools />} />
               <Route path="/google-dorking" element={<GoogleDorking />} />
             </Route>
