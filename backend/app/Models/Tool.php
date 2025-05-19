@@ -14,5 +14,6 @@ class Tool extends Model
         'category',
         'description',
         'installation_command',
+        'is_installed'
     ];
 }

@@ -39,16 +39,29 @@ Route::get('/tools', [ToolController::class, 'index']);
 Route::post('/tools', [ToolController::class, 'store']);
 Route::post('/execute-wsl', [ToolController::class, 'executeWSL']);
 Route::post('/tool/check-install', [ToolController::class, 'checkAndInstallTool']);
+Route::get('/available-tools', [ToolController::class, 'getInstalledTools']);
 Route::get('/tools/{tool}', [ToolController::class, 'show']);
 Route::put('/tools/{tool}', [ToolController::class, 'update']);
 Route::delete('/tools/{tool}', [ToolController::class, 'destroy']);
 
 // Tool Shell Routes
-Route::get('/run-tool', [ToolShellController::class, 'runTool']);
+Route::post('/run-command', [ToolShellController::class, 'runCommand']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-});
 
+    //tools
+    Route::get('/tools', [ToolController::class, 'index']);
+    Route::post('/tools', [ToolController::class, 'store']);
+    Route::post('/execute-wsl', [ToolController::class, 'executeWSL']);
+    Route::post('/tool/check-install', [ToolController::class, 'checkAndInstallTool']);
+    Route::get('/available-tools', [ToolController::class, 'getInstalledTools']);
+    Route::get('/tools/{tool}', [ToolController::class, 'show']);
+    Route::put('/tools/{tool}', [ToolController::class, 'update']);
+    Route::delete('/tools/{tool}', [ToolController::class, 'destroy']);
+
+    // Tool Shell Routes
+    Route::post('/run-command', [ToolShellController::class, 'runCommand']);
+});

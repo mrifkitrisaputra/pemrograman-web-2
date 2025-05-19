@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import axiosInstance from "../api/api"; // Sesuaikan path jika perlu
 import { Plus, X } from "lucide-react";
 
-const TerminalTab = ({
-  active,
-  commands,
-  currentCommand,
-  onCommandChange,
-  onKeyDown,
-}) => {
+const TerminalTab = ({ active, commands, currentCommand, onCommandChange, onKeyDown, username }) => {
   const terminalRef = useRef(null);
 
   useEffect(() => {
@@ -19,10 +14,7 @@ const TerminalTab = ({
   if (!active) return null;
 
   return (
-    <div
-      ref={terminalRef}
-      className="p-4 h-full overflow-y-auto text-gray-200 font-mono"
-    >
+    <div ref={terminalRef} className="p-4 h-full overflow-y-auto text-gray-200 font-mono">
       {/* Command History */}
       {commands.map((cmd, index) => (
         <div key={index} className="mb-2">
@@ -30,19 +22,18 @@ const TerminalTab = ({
             {/* Header */}
             <div className="flex items-center">
               <span className="text-green-400">┌──(</span>
-              <span className="text-green-400">miquela@cyberf</span>
+              <span className="text-green-400">{username}@cyberf</span>
               <span className="text-gray-400">)-[</span>
               <span className="text-blue-400">~</span>
               <span className="text-gray-400">]</span>
             </div>
-
             {/* Footer (Prompt) */}
             <div className="flex items-center">
               <span className="text-green-400">└─$ </span>
               <span className="ml-2">{cmd.command}</span>
             </div>
           </div>
-          <div className="text-gray-300 whitespace-pre-line">
+          <div className="text-gray-300 whitespace-pre-line mt-1">
             {cmd.output.startsWith("<img") ? (
               <div dangerouslySetInnerHTML={{ __html: cmd.output }} />
             ) : (
@@ -51,18 +42,16 @@ const TerminalTab = ({
           </div>
         </div>
       ))}
-      
       {/* Current Command Input */}
       <div className="flex flex-col">
         {/* Header */}
         <div className="flex items-center">
           <span className="text-green-400">┌──(</span>
-          <span className="text-green-400">miquela@cyberf</span>
+          <span className="text-green-400">{username}@cyberf</span>
           <span className="text-gray-400">)-[</span>
           <span className="text-blue-400">~</span>
           <span className="text-gray-400">]</span>
         </div>
-
         {/* Footer (Prompt with Input) */}
         <div className="flex items-center">
           <span className="text-green-400">└─$ </span>
@@ -81,15 +70,14 @@ const TerminalTab = ({
 };
 
 const Terminal = () => {
+  const [username, setUsername] = useState("user");
   const [tabs, setTabs] = useState([
     {
       id: 1,
       commands: [
         {
-          command: "welcome miquela",
-          output: `<img src='/aset/test.png' class="w-[43rem] py-5" alt='banner'/>
-          Type 'help' to see list available commands.`,
-          timestamp: new Date().toLocaleTimeString(),
+          command: "welcome",
+          output: `<img src='/aset/test.png' class="w-[43rem] py-5" alt='banner'/>Type 'help' to see list available commands.`,
         },
       ],
       currentCommand: "",
@@ -99,251 +87,258 @@ const Terminal = () => {
   ]);
   const [activeTab, setActiveTab] = useState(1);
 
+  // Ambil data user saat komponen mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axiosInstance.getUser();
+        setUsername(response.name);
+        setTabs(prev => {
+          const updated = [...prev];
+          updated[0].commands[0].command = `welcome ${response.name}`;
+          return updated;
+        });
+      } catch (err) {
+        setUsername("user");
+        setTabs(prev => {
+          const updated = [...prev];
+          updated[0].commands[0].command = "welcome user";
+          return updated;
+        });
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   const handleCommand = async (e) => {
     const tabIndex = tabs.findIndex((tab) => tab.id === activeTab);
     const currentTab = tabs[tabIndex];
-  
-    // Handle Arrow Up for navigating history
+    const commandText = currentTab.currentCommand.trim();
+
+    // Navigasi ↑ ↓ tetap sama
     if (e.key === "ArrowUp") {
       e.preventDefault();
-  
       if (currentTab.history.length > 0) {
-        let updatedTabs = [...tabs];
-  
-        if (currentTab.historyIndex === -1) {
-          // Save the current command before navigating history
-          updatedTabs[tabIndex] = {
-            ...currentTab,
-            tempCommand: currentTab.currentCommand || "",
-            historyIndex: 0,
+        const newIndex = Math.max(currentTab.historyIndex + 1, 0);
+        const newCommand =
+          currentTab.history[currentTab.history.length - 1 - newIndex] || "";
+        setTabs((prev) => {
+          const updated = [...prev];
+          updated[tabIndex] = {
+            ...updated[tabIndex],
+            historyIndex: newIndex,
+            currentCommand: newCommand,
           };
-        }
-  
-        const newIndex = Math.min(currentTab.historyIndex + 1, currentTab.history.length - 1);
-        updatedTabs[tabIndex] = {
-          ...updatedTabs[tabIndex],
-          historyIndex: newIndex,
-          currentCommand: currentTab.history[currentTab.history.length - 1 - newIndex],
-        };
-  
-        setTabs(updatedTabs);
+          return updated;
+        });
       }
       return;
     }
-  
-    // Handle Arrow Down for navigating history
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
-  
-      if (currentTab.historyIndex > 0) {
+      if (currentTab.historyIndex >= 0) {
         const newIndex = currentTab.historyIndex - 1;
-        const updatedTabs = [...tabs];
-        updatedTabs[tabIndex] = {
-          ...currentTab,
-          historyIndex: newIndex,
-          currentCommand: currentTab.history[currentTab.history.length - 1 - newIndex],
-        };
-        setTabs(updatedTabs);
-      } else if (currentTab.historyIndex === 0) {
-        // Restore the saved command when reaching the bottom
-        const updatedTabs = [...tabs];
-        updatedTabs[tabIndex] = {
-          ...currentTab,
-          historyIndex: -1,
-          currentCommand: currentTab.tempCommand || "",
-          tempCommand: undefined, // Clear the temporary command
-        };
-        setTabs(updatedTabs);
+        const newCommand =
+          currentTab.history[currentTab.history.length - 1 - newIndex] || "";
+        setTabs((prev) => {
+          const updated = [...prev];
+          updated[tabIndex] = {
+            ...updated[tabIndex],
+            historyIndex: newIndex,
+            currentCommand: newCommand,
+          };
+          return updated;
+        });
       }
       return;
     }
-  
-    // Handle Enter key for executing commands
+
     if (e.key === "Enter") {
       e.preventDefault();
-  
-      const commandText = currentTab.currentCommand.trim();
-  
-      // Save all commands to history (including duplicates and empty inputs)
+
       const updatedTabs = [...tabs];
+      const tabIndex = updatedTabs.findIndex((tab) => tab.id === activeTab);
+      const currentTab = updatedTabs[tabIndex];
+
+      // Simpan ke history
       updatedTabs[tabIndex] = {
         ...currentTab,
-        history: [...currentTab.history, commandText], // Save all commands
+        history: [...currentTab.history, commandText],
         historyIndex: -1,
-        tempCommand: undefined,
       };
-  
+
       // Reset input prompt
       updatedTabs[tabIndex].currentCommand = "";
-      setTabs(updatedTabs);
-  
-      // Handle specific commands
+      setTabs([...updatedTabs]);
+
+      // --- COMMAND HANDLER ---
       switch (commandText) {
-        case "welcome":
-          updatedTabs[tabIndex].commands = [
-            ...currentTab.commands,
-            {
-              command: "welcome miquela",
-              output: `\nType 'help' to see list available commands.`,
-              timestamp: new Date().toLocaleTimeString(),
-            },
-          ];
-          break;
-  
         case "help":
           updatedTabs[tabIndex].commands = [
             ...currentTab.commands,
             {
               command: "help",
-              output: `Available Commands:\n- help: Display this message\n- clear: Clean up the screen when it gets too messy.\n- whoami: Who are you in this vast digital universe? Find out here.\n- welcome: Feeling lost? Let us greet you back to reality.\n- tools: Check out some cool tools to help you out.\n- new-tab: Open a new tab if you're multitasking like a pro.\n- exit: Ghosting us? Use this to close the tab.\n- google-dorking: Find hidden stuff on the web like a ninja.`,
-              timestamp: new Date().toLocaleTimeString(),
+              output: `Available Commands:
+- help: Display this message
+- clear: Clear screen
+- whoami: Show current user
+- welcome: Welcome message
+- tools: List of available tools
+- exit: Close current tab
+- new-tab: Open a new tab
+- google-dorking: Go to Google Dorking page`,
             },
           ];
           break;
-  
+
         case "clear":
           updatedTabs[tabIndex].commands = [];
           break;
-  
+
         case "whoami":
           updatedTabs[tabIndex].commands = [
             ...currentTab.commands,
             {
               command: "whoami",
-              output: "You are miquela@cyberf. Welcome to the digital world!",
-              timestamp: new Date().toLocaleTimeString(),
+              output: `You are ${username}@cyberf. Welcome to the digital world!`,
             },
           ];
           break;
-  
-        case "tools":
+
+        case "welcome":
           updatedTabs[tabIndex].commands = [
             ...currentTab.commands,
             {
-              command: "tools",
-              output: `Here are some cool tools you can use:\n- Network Scanner: Scan your network for devices.\n- Port Scanner: Check open ports on your system.\n- Password Generator: Create strong, secure passwords.\n- File Encryptor: Encrypt your files for extra security.`,
-              timestamp: new Date().toLocaleTimeString(),
+              command: "welcome",
+              output: `<img src='/aset/test.png' class="w-[43rem] py-5" alt='banner'/>
+Type 'help' to see list available commands.`,
             },
           ];
           break;
-  
+
+        case "tools":
+          try {
+            const res = await axiosInstance.get("/available-tools");
+
+            const installedTools = res.data.data;
+
+            if (installedTools.length === 0) {
+              updatedTabs[tabIndex].commands.push({
+                command: "tools",
+                output: "Tidak ada tool yang terinstall.",
+              });
+            } else {
+              const toolsList = installedTools
+                .map((tool) => `- ${tool.name} (${tool.category})`)
+                .join("\n");
+
+              updatedTabs[tabIndex].commands.push({
+                command: "tools",
+                output: `Berikut adalah tools yang sudah terinstall:\n${toolsList}\n\nGunakan seperti di CLI biasa.`,
+              });
+            }
+          } catch (err) {
+            updatedTabs[tabIndex].commands.push({
+              command: "tools",
+              output: "Gagal mengambil daftar tools.",
+            });
+          }
+          break;
+
         case "new-tab":
           const nextTerminalNumber = tabs.length + 1;
           const newTab = {
-            id: `${nextTerminalNumber}`,
-            name: `Terminal ${nextTerminalNumber}`,
-            commands: [],
+            id: nextTerminalNumber,
+            commands: [
+              {
+                command: `welcome ${username}`,
+                output: `<img src='/aset/test.png' class="w-[43rem] py-5" alt='banner'/>
+Type 'help' to see list available commands.`,
+              },
+            ],
             currentCommand: "",
             history: [],
             historyIndex: -1,
           };
-  
           updatedTabs.push(newTab);
-          setActiveTab(`${nextTerminalNumber}`);
-  
-          updatedTabs[tabIndex].commands = [
-            ...currentTab.commands,
-            {
-              command: "new-tab",
-              output: `New tab created: ${newTab.name}. Stay here and keep working!`,
-              timestamp: new Date().toLocaleTimeString(),
-            },
-          ];
-          break;
-  
-        case "exit":
-          const remainingTabs = tabs.filter((tab) => tab.id !== activeTab);
-  
-          if (remainingTabs.length === 0) {
-            const defaultTab = {
-              id: "1",
-              name: "Terminal 1",
-              commands: [],
-              currentCommand: "",
-              history: [],
-              historyIndex: -1,
-            };
-            setActiveTab("1");
-            setTabs([defaultTab]);
-            return;
-          }
-  
-          setActiveTab(remainingTabs[0].id);
-          setTabs(remainingTabs);
+          setActiveTab(nextTerminalNumber);
+          setTabs(updatedTabs);
           return;
-  
+
+        case "exit":
+          if (tabs.length > 1) {
+            const remainingTabs = tabs.filter((tab) => tab.id !== activeTab);
+            setActiveTab(remainingTabs[0].id);
+            setTabs(remainingTabs);
+          }
+          return;
+
         case "google-dorking":
-          updatedTabs[tabIndex].commands = [
-            ...currentTab.commands,
-            {
-              command: "google-dorking",
-              output: "Redirecting to Google Dorking page...",
-              timestamp: new Date().toLocaleTimeString(),
-            },
-          ];
-  
+          updatedTabs[tabIndex].commands.push({
+            command: "google-dorking",
+            output: "Redirecting to Google Dorking...",
+          });
           setTimeout(() => {
             window.location.href = "/google-dorking";
-          }, 500); // Delay for smooth UX
+          }, 500);
           break;
-  
+
         default:
-          updatedTabs[tabIndex].commands = [
-            ...currentTab.commands,
-            {
+          
+          try {
+            const res = await axiosInstance.post("/run-command", { command: commandText });
+
+            updatedTabs[tabIndex].commands.push({
               command: commandText,
-              output: `Command '${commandText}' is not available yet.`,
-              timestamp: new Date().toLocaleTimeString(),
-            },
-          ];
+              output: res.data.output || "Tidak ada output.",
+            });
+          } catch (err) {
+            updatedTabs[tabIndex].commands.push({
+              command: commandText,
+              output: err.response?.data?.output || "Gagal menjalankan perintah.",
+            });
+          }
           break;
       }
-  
-      setTabs(updatedTabs);
+
+      setTabs([...updatedTabs]);
     }
   };
 
   const addNewTab = () => {
-    const newId = Math.max(...tabs.map((tab) => tab.id)) + 1;
-
-    // Initialize the new tab with the 'banner' command
+    const newId = tabs.length + 1;
     const newTab = {
       id: newId,
       commands: [
         {
-          command: "welcome miquela",
+          command: `welcome ${username}`,
           output: `<img src='/aset/test.png' class="w-[43rem] py-5" alt='banner'/>
-          Type 'help' to see list available commands.`,
-          timestamp: new Date().toLocaleTimeString(),
+Type 'help' to see list available commands.`,
         },
       ],
       currentCommand: "",
       history: [],
       historyIndex: -1,
     };
-
     setTabs([...tabs, newTab]);
     setActiveTab(newId);
   };
 
-  const closeTab = (tabId) => {
+  const closeTab = (id) => {
     if (tabs.length > 1) {
-      const newTabs = tabs.filter((tab) => tab.id !== tabId);
+      const newTabs = tabs.filter((tab) => tab.id !== id);
       setTabs(newTabs);
-      if (activeTab === tabId) {
-        setActiveTab(newTabs[0].id);
-      }
+      setActiveTab(newTabs[0].id);
     }
   };
 
   const updateCommand = (value) => {
     const tabIndex = tabs.findIndex((tab) => tab.id === activeTab);
-    const updatedTabs = [...tabs];
-    updatedTabs[tabIndex] = {
-      ...updatedTabs[tabIndex],
-      currentCommand: value,
-    };
-    setTabs(updatedTabs);
+    const updated = [...tabs];
+    updated[tabIndex].currentCommand = value;
+    setTabs(updated);
   };
 
   return (
@@ -354,10 +349,9 @@ const Terminal = () => {
           <div className="h-3 w-3 rounded-full bg-red-500"></div>
           <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
           <div className="h-3 w-3 rounded-full bg-green-500"></div>
-          <span className="text-gray-400 text-sm ml-2">
-            Cyber Forge Terminal
-          </span>
+          <span className="text-gray-400 text-sm ml-2">Cyber Forge Terminal</span>
         </div>
+
         {/* Tabs Bar */}
         <div className="bg-[#2d2d2d] border-b border-gray-700 flex items-center">
           {tabs.map((tab) => (
@@ -368,16 +362,16 @@ const Terminal = () => {
                   ? "bg-[#1e1e1e] text-gray-200"
                   : "text-gray-400 hover:bg-[#343434]"
               }`}
-              title={`Switch to Terminal ${tab.id}`}
+              onClick={() => setActiveTab(tab.id)}
             >
-              <span onClick={() => setActiveTab(tab.id)}>
-                Terminal {tab.id}
-              </span>
+              <span>Terminal {tab.id}</span>
               {tabs.length > 1 && (
                 <button
-                  onClick={() => closeTab(tab.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                  }}
                   className="ml-2 hover:text-red-500"
-                  title="Close Tab"
                 >
                   <X size={14} />
                 </button>
@@ -387,21 +381,22 @@ const Terminal = () => {
           <button
             onClick={addNewTab}
             className="p-2 text-gray-400 hover:text-gray-200"
-            title="Add New Tab"
           >
             <Plus size={20} />
           </button>
         </div>
+
         {/* Terminal Body */}
         <div className="flex-1 overflow-hidden">
           {tabs.map((tab) => (
             <TerminalTab
               key={tab.id}
-              active={activeTab === tab.id}
+              active={tab.id === activeTab}
               commands={tab.commands}
               currentCommand={tab.currentCommand}
               onCommandChange={updateCommand}
               onKeyDown={handleCommand}
+              username={username}
             />
           ))}
         </div>

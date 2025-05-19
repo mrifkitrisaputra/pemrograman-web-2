@@ -4,64 +4,59 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tool;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Log;
 
 class ToolShellController extends Controller
 {
-    // Jalankan perintah terminal seperti nmap, dig, dll.
-    public function runTool(Request $request)
+    public function runCommand(Request $request)
     {
-        $cmd = $request->query('cmd');
+        // Validasi input
+        $request->validate(['command' => 'required|string']);
 
-        if (!$cmd) {
-            return response()->json(['error' => 'Command tidak boleh kosong'], 400);
+        $command = trim($request->input('command'));
+
+        if (empty($command)) {
+            return response()->json(['output' => 'Command kosong']);
         }
 
-        // Cek apakah tool tersedia
-        $parts = explode(" ", $cmd);
-        $toolName = $parts[0];
+        // Ambil nama tool dari command
+        $parts = explode(' ', $command);
+        $toolName = strtolower($parts[0]);
 
+        // Cek apakah tool tersimpan dan sudah terinstall
         $tool = Tool::where('name', $toolName)->first();
 
         if (!$tool) {
-            return response()->json(['error' => "Tool '$toolName' tidak dikenali"], 403);
+            return response()->json([
+                'output' => "Error: Tool '$toolName' tidak dikenali."
+            ]);
         }
 
-        if (!$this->isSafeCommand($cmd)) {
-            return response()->json(['error' => "Command tidak diizinkan"], 403);
+        if (!$tool->is_installed) {
+            return response()->json([
+                'output' => "Error: Tool '$toolName' belum terinstall."
+            ]);
         }
 
-        // Jalankan command secara async
-        $fullCmd = PHP_OS_FAMILY === 'Windows' ? "wsl " . $cmd : $cmd;
+        try {
+            // Jalankan command langsung via shell_exec()
+            $output = [];
+            $exitCode = 0;
 
-        Log::info("Menjalankan perintah: " . $fullCmd);
+            exec("wsl /bin/bash -c \"" . escapeshellcmd($command) . "\" 2>&1", $output, $exitCode);
 
-        Process::run($fullCmd . " 2>&1", function ($type, $output) use ($toolName) {
-            if ($type === 'out') {
-                Log::info("Output dari [$toolName]: " . $output);
+            if ($exitCode === 0) {
+                return response()->json([
+                    'output' => implode("\n", $output)
+                ]);
             } else {
-                Log::error("Error dari [$toolName]: " . $output);
+                return response()->json([
+                    'output' => "Gagal menjalankan perintah '$command':\n" . implode("\n", $output)
+                ], 500);
             }
-        });
-
-        return response()->json([
-            'command' => $cmd,
-            'message' => 'Perintah sedang dijalankan di background',
-            'status' => 'queued'
-        ]);
-    }
-
-    private function isSafeCommand($cmd)
-    {
-        $allowedCommands = ['/^nmap\s/', '/^dig\s/', '/^curl\s/', '/^whois\s/'];
-
-        foreach ($allowedCommands as $pattern) {
-            if (preg_match($pattern, $cmd)) {
-                return true;
-            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'output' => "Terjadi kesalahan: " . $e->getMessage()
+            ], 500);
         }
-
-        return false;
     }
 }

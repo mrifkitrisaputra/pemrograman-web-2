@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/api";
-import { FaSearch, FaEdit, FaTrashAlt, FaTimes, FaPlus, FaFilter } from "react-icons/fa";
+import {
+  FaSearch,
+  FaEdit,
+  FaTrashAlt,
+  FaTimes,
+  FaPlus,
+  FaFilter,
+} from "react-icons/fa";
 
 const Tools = () => {
   const [tools, setTools] = useState([]);
@@ -37,6 +44,11 @@ const Tools = () => {
 
     if (!name || !category || !description || !installation_command) {
       setMessage({ type: "error", text: "Please fill in all fields." });
+      return;
+    }
+
+    if (!toolToAdd.installation_command.includes("sudo apt install")) {
+      alert("Command harus dimulai dengan 'sudo apt install'");
       return;
     }
 
@@ -83,8 +95,10 @@ const Tools = () => {
         description: "",
         installation_command: "",
       });
-      setMessage({ type: "success", text: `Tool "${name}" added successfully.` });
-
+      setMessage({
+        type: "success",
+        text: `Tool "${name}" added successfully.`,
+      });
     } catch (error) {
       console.error("Error adding/installing tool:", error);
       setMessage({
@@ -121,7 +135,9 @@ const Tools = () => {
       alert("Tool updated successfully.");
     } catch (error) {
       if (error.response && error.response.status === 422) {
-        const errors = Object.values(error.response.data.errors).flat().join("\n");
+        const errors = Object.values(error.response.data.errors)
+          .flat()
+          .join("\n");
         alert("Validation Errors:\n" + errors);
       } else {
         alert("Failed to update tool.");
@@ -143,11 +159,13 @@ const Tools = () => {
   };
 
   // Filter tools berdasarkan search & kategori
-  const filteredTools = tools.filter(
-    (tool) =>
-      tool.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (selectedCategory === "" || tool.category === selectedCategory)
-  );
+  const filteredTools = tools
+    .filter((tool) => tool.is_installed)
+    .filter(
+      (tool) =>
+        tool.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (selectedCategory === "" || tool.category === selectedCategory)
+    );
 
   // Mendapatkan daftar kategori unik
   const categories = [...new Set(tools.map((tool) => tool.category))];

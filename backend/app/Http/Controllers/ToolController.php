@@ -209,10 +209,6 @@ class ToolController extends Controller
         }
     }
 
-    /**
-     * Check if a tool is installed, then install it if not.
-     * Only allow installing tools with safe package names.
-     */
     public function checkAndInstallTool(Request $request)
     {
         $tool = trim($request->input('tool'));
@@ -224,7 +220,7 @@ class ToolController extends Controller
             ], 400);
         }
 
-        // Pastikan nama tool hanya mengandung karakter aman
+        // Validasi nama tool
         if (!preg_match('/^[a-zA-Z0-9\-\_\.]+$/', $tool)) {
             return response()->json([
                 'success' => false,
@@ -239,6 +235,12 @@ class ToolController extends Controller
             exec("wsl dpkg -s {$tool} > /dev/null 2>&1", $checkOutput, $checkExitCode);
 
             if ($checkExitCode === 0) {
+                // Tool sudah terinstall
+                $toolModel = Tool::where('name', $tool)->first();
+                if ($toolModel) {
+                    $toolModel->update(['is_installed' => true]);
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => "Tool '$tool' sudah terinstall",
@@ -246,7 +248,7 @@ class ToolController extends Controller
                     'output' => "Skipping installation..."
                 ]);
             } else {
-                // Install dengan whitelist perintah
+                // Install tool
                 $installCommand = "sudo apt-get install -y {$tool}";
                 if (!$this->isCommandAllowed($installCommand)) {
                     return response()->json([
@@ -260,6 +262,12 @@ class ToolController extends Controller
                 exec("wsl sudo apt-get update && wsl {$installCommand} 2>&1", $output, $exitCode);
 
                 if ($exitCode === 0) {
+                    // Update is_installed = true
+                    $toolModel = Tool::where('name', $tool)->first();
+                    if ($toolModel) {
+                        $toolModel->update(['is_installed' => true]);
+                    }
+
                     return response()->json([
                         'success' => true,
                         'message' => "Tool '$tool' berhasil diinstal",
@@ -281,5 +289,15 @@ class ToolController extends Controller
                 'error' => 'Terjadi kesalahan: ' . $e->getMessage()
             ]);
         }
+    }
+
+    public function getInstalledTools()
+    {
+        $tools = Tool::where('is_installed', true)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $tools
+        ]);
     }
 }

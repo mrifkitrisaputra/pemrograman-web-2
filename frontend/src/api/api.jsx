@@ -19,5 +19,15 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+axiosInstance.getUser = async () => {
+    try {
+        const response = await axiosInstance.get('/user');
+        return Promise.resolve(response.data);
+    } catch (error) {
+        console.error("Failed to fetch user:", error);
+        return Promise.reject(error?.response?.data || error.message);
+    }
+};
+
 export default axiosInstance;
 
